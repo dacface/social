@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export class GroupService {
   /**
@@ -34,7 +35,7 @@ export class GroupService {
 
     const batch = db.batch();
     batch.set(memberRef, { role: 'user', joinedAt: new Date() });
-    batch.update(groupRef, { membersCount: db.FieldValue.increment(1) });
+    batch.update(groupRef, { membersCount: FieldValue.increment(1) });
     
     await batch.commit();
   }

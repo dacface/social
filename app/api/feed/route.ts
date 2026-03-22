@@ -3,6 +3,8 @@ import { db } from '@/lib/firebase-admin';
 import { redis } from '@/lib/redis';
 import { FeedItem } from '@/types/schema';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/feed?uid=user123&cursor=timestamp
 export async function GET(req: NextRequest) {
   try {

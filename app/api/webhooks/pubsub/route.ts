@@ -1,6 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/webhooks/pubsub
 export async function POST(req: NextRequest) {
   try {

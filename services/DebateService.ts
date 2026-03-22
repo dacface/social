@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { Idea, Debate, Argument } from '@/types/schema';
 
 export class DebateService {
@@ -76,7 +77,7 @@ export class DebateService {
     const debateRef = db.collection('debates').doc(debateId);
     
     // Use Firestore increment operator
-    const increment = db.FieldValue.increment(1);
+    const increment = FieldValue.increment(1);
     
     const updateData: any = {
       argumentsCount: increment,
