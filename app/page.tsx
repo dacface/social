@@ -5,8 +5,8 @@ import {
   Search, 
   SlidersHorizontal,
   Heart,
-  MessageCircle,
-  Share2,
+  MessageSquareMore,
+  Share,
   Scale,
   Sparkles,
   Send,
@@ -16,255 +16,279 @@ import {
   Bell,
   User,
   CheckCircle2,
-  AlertCircle,
-  PlaySquare,
   Clock,
-  Activity,
-  ShieldCheck
+  ChevronDown,
+  ShieldCheck,
+  Signal,
+  Wifi,
+  Battery,
+  FileText,
+  CalendarDays,
+  Circle,
+  Activity
 } from 'lucide-react';
-import Image from 'next/image';
 
 export default function MobileFeed() {
   const [activeTab, setActiveTab] = useState('Pentru Tine');
-  const [activeFilter, setActiveFilter] = useState('Cronologic');
 
   const tabs = ['Pentru Tine', 'Politic', 'Economie', 'Social', 'Artă', 'Sport'];
 
   return (
-    <main className="relative w-full h-[100dvh] bg-black text-white font-sans overflow-hidden max-w-md mx-auto sm:border-x sm:border-gray-800">
+    <main className="relative w-full h-[100dvh] bg-black text-white font-sans overflow-hidden max-w-[430px] mx-auto sm:border-x sm:border-gray-800 flex flex-col">
       
       {/* Background Media */}
       <div className="absolute inset-0 z-0">
         <img 
           src="https://images.unsplash.com/photo-1541872596495-25b8431945ae?q=80&w=800&auto=format&fit=crop" 
           alt="Post background"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-[2.5rem] sm:rounded-none object-[70%_20%]" // Adjusted focal point for resemblance
         />
-        {/* Gradient overlays for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 pointer-events-none" />
+        {/* Gradients for text readability */}
+        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
       </div>
 
-      {/* --- TOP NAVIGATION --- */}
-      <div className="absolute top-0 left-0 right-0 z-20 pt-12 px-4">
-        {/* Tabs Row */}
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-5">
-            {tabs.map(tab => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap pb-1.5 text-sm font-semibold transition-colors
-                  ${activeTab === tab 
-                    ? 'text-white border-b-2 border-white' 
-                    : 'text-gray-300/70 hover:text-white'
-                  }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <button className="text-white p-1">
-            <Search className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Filters Row */}
-        <div className="flex items-center gap-2">
-          <button 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-600/40 backdrop-blur-md rounded-full text-xs font-medium border border-gray-500/30"
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Cronologic</span>
-            <span className="text-gray-400 ml-1">v</span>
-          </button>
-          
-          <button 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-600/40 backdrop-blur-md rounded-full text-xs font-medium border border-gray-500/30"
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>Algoritmic</span>
-            <span className="text-gray-400 ml-1">v</span>
-          </button>
-          
-          <button 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-600/40 backdrop-blur-md rounded-full text-xs font-medium border border-gray-500/30"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Verificat</span>
-          </button>
-
-          <div className="flex-1" />
-          <button className="text-white p-1">
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* --- FLOATING ELEMENTS --- */}
-      {/* Fact Check Pill */}
-      <button className="absolute top-36 left-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-black/50 backdrop-blur-md rounded-full border border-red-500/30">
-        <div className="w-2 h-2 rounded-full bg-red-500" />
-        <span className="text-xs font-bold text-gray-200">FALS</span>
-        <span className="text-xs md:text-[11px] text-gray-300">Manipulare detectată &gt;</span>
-      </button>
-
-      {/* Top Right Floating Avatar */}
-      <div className="absolute top-36 right-4 z-20">
-        <div className="relative">
-          <img 
-            src="https://i.pravatar.cc/150?u=a042581f4e29026704d" 
-            className="w-10 h-10 rounded-full border-2 border-white/20"
-            alt="Secondary user"
-          />
-          <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-transparent">
-            <CheckCircle2 className="w-3 h-3 text-white" />
-          </div>
-        </div>
-        <div className="text-[9px] text-white/70 text-center mt-1 font-medium">1 112</div>
-      </div>
-
-      {/* --- RIGHT ACTIONS BAR --- */}
-      <div className="absolute right-4 bottom-32 z-20 flex flex-col items-center gap-6">
-        <button className="flex flex-col items-center gap-1">
-          <div className="p-3 bg-black/20 rounded-full backdrop-blur-sm">
-            <Heart className="w-7 h-7 text-white fill-white" />
-          </div>
-          <span className="text-xs font-bold text-white drop-shadow-md">12.4K</span>
-        </button>
-
-        <button className="flex flex-col items-center gap-1">
-          <div className="p-3 bg-black/20 rounded-full backdrop-blur-sm">
-            <MessageCircle className="w-7 h-7 text-white fill-white" />
-          </div>
-          <span className="text-xs font-bold text-white drop-shadow-md">256</span>
-        </button>
-
-        <button className="flex flex-col items-center gap-1">
-          <div className="p-3 bg-black/20 rounded-full backdrop-blur-sm">
-            <Share2 className="w-7 h-7 text-white fill-white" />
-          </div>
-          <span className="text-xs font-bold text-white drop-shadow-md">1.2K</span>
-        </button>
-
-        <button className="flex flex-col items-center gap-1 mt-2">
-          <div className="p-3 bg-black/40 rounded-full backdrop-blur-md border border-white/20">
-            <Scale className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-[10px] font-medium text-white drop-shadow-md">Dezbatere</span>
-        </button>
-
-        <button className="flex flex-col items-center gap-1 mt-2">
-          <div className="p-3 bg-purple-600/30 rounded-full backdrop-blur-md border border-purple-400/50 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-            <Sparkles className="w-6 h-6 text-purple-200" />
-          </div>
-          <span className="text-[10px] font-medium text-purple-200 drop-shadow-md">Explică AI</span>
-        </button>
-      </div>
-
-      {/* --- BOTTOM LEFT CONTENT --- */}
-      <div className="absolute left-4 bottom-28 right-20 z-20 flex flex-col gap-3">
-        {/* User Info */}
-        <div className="flex items-center gap-3">
-          <img 
-            src="https://i.pravatar.cc/150?u=a042581f4e29026024d" 
-            className="w-11 h-11 rounded-full border border-white/30"
-            alt="Ana Popescu"
-          />
-          <div className="flex flex-col">
+      {/* --- FLOATING OVERLAY UI --- */}
+      <div className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between">
+        
+        {/* Top Section */}
+        <div className="pointer-events-auto">
+          {/* iOS Status Bar Mock */}
+          <div className="flex justify-between items-center px-6 pt-3 pb-2">
+            <span className="text-[15px] font-semibold tracking-wide">10:24</span>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-base text-white drop-shadow-md">Ana Popescu</span>
-              <CheckCircle2 className="w-4 h-4 text-blue-500 fill-blue-500 bg-white rounded-full" />
+              <Signal className="w-4 h-4" />
+              <Wifi className="w-4 h-4" />
+              <Battery className="w-[18px] h-[18px]" />
             </div>
-            <span className="text-xs text-gray-300 drop-shadow-md">
-              București, România • 5m
-            </span>
+          </div>
+
+          {/* Top Tabs Nav */}
+          <div className="flex items-center justify-between px-4 mt-1">
+            <div className="flex-1 overflow-x-auto no-scrollbar flex items-center gap-4">
+              {tabs.map(tab => (
+                <button 
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative pb-2 whitespace-nowrap text-[15px] transition-colors
+                    ${activeTab === tab 
+                      ? 'text-white font-bold' 
+                      : 'text-white/60 font-medium hover:text-white'
+                    }`}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white rounded-t-sm" />
+                  )}
+                </button>
+              ))}
+            </div>
+            <button className="pl-3 pb-2">
+              <Search className="w-5 h-5 text-white stroke-[2.5]" />
+            </button>
+          </div>
+
+          {/* Filters Row */}
+          <div className="flex items-center px-4 mt-3 gap-2">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[13px] font-medium border border-white/5">
+              <Clock className="w-3.5 h-3.5 text-white/80" />
+              <span>Cronologic</span>
+              <ChevronDown className="w-3.5 h-3.5 text-white/70" />
+            </button>
+            
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 backdrop-blur-md rounded-full text-[13px] font-medium border border-blue-500/20">
+              <Activity className="w-3.5 h-3.5 text-blue-100" />
+              <span className="text-blue-50">Algoritmic</span>
+              <ChevronDown className="w-3.5 h-3.5 text-blue-200/70" />
+            </button>
+            
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[13px] font-medium border border-white/5">
+              <ShieldCheck className="w-3.5 h-3.5 text-white/80" />
+              <span>Verificat</span>
+            </button>
+
+            <div className="flex-1" />
+            <button className="p-1">
+              <SlidersHorizontal className="w-4 h-4 text-white" />
+            </button>
+          </div>
+
+          {/* Content Overlays - "FALS" Pill and Floating Avatar */}
+          <div className="relative mt-5 px-4 h-12">
+            {/* FALS Badge */}
+            <button className="absolute left-4 top-0 flex items-center gap-1.5 pl-2 pr-3 py-1.5 bg-black/60 backdrop-blur-md rounded-full border border-red-500/40">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+              <span className="text-[11px] font-bold text-red-500 tracking-wider">FALS</span>
+              <span className="text-[12px] font-medium text-gray-200 ml-0.5">Manipulare detectată &gt;</span>
+            </button>
+
+            {/* Top Right Floating Avatar */}
+            <div className="absolute right-4 top-0 flex flex-col items-center">
+              <div className="relative">
+                <img 
+                  src="https://i.pravatar.cc/150?u=a042581f4e3" 
+                  className="w-[38px] h-[38px] rounded-full border border-white/30"
+                  alt="Secondary user"
+                />
+                <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full border-2 border-transparent">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                </div>
+              </div>
+              <span className="text-[10px] text-white/80 font-medium mt-1">1 112</span>
+            </div>
           </div>
         </div>
 
-        {/* Caption */}
-        <p className="text-sm font-medium text-white leading-snug drop-shadow-md">
-          Trebuie să mergem la vot pentru a schimba viitorul! 
-          <span className="text-blue-400"> #Politica #Alegeri #Democratie</span>
-        </p>
+        {/* Bottom Section (excluding bottom nav) */}
+        <div className="flex-1 flex justify-between items-end pb-4 pt-10 pointer-events-auto">
+          
+          {/* Post Info (Left) */}
+          <div className="flex-1 px-4 flex flex-col pb-3">
+            {/* Avatar & Name */}
+            <div className="flex items-center gap-3 mb-3">
+              <img 
+                src="https://i.pravatar.cc/150?u=a042581f4e29026" 
+                className="w-11 h-11 rounded-full border-[1.5px] border-white/30"
+                alt="Ana Popescu"
+              />
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-[16px] text-white drop-shadow-md">Ana Popescu</span>
+                  <div className="bg-white rounded-full p-[1px]">
+                    <CheckCircle2 className="w-[14px] h-[14px] text-blue-500 fill-blue-500" />
+                  </div>
+                </div>
+                <span className="text-[13px] tracking-tight text-white/80 drop-shadow-md font-medium">
+                  București, România • 5m
+                </span>
+              </div>
+            </div>
 
-        {/* Tags Row */}
-        <div className="flex flex-wrap gap-2 mt-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/60 backdrop-blur-md rounded-md">
-            <PlaySquare className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-xs font-medium text-gray-200">Politic</span>
+            {/* Caption */}
+            <p className="text-[15px] font-medium text-white/95 leading-[1.3] drop-shadow-md mb-0.5">
+              Trebuie să mergem la vot pentru a schimba viitorul!
+            </p>
+            
+            {/* Hashtags */}
+            <p className="text-[15px] font-semibold text-blue-400 drop-shadow-md mb-3">
+              #Politica #Alegeri #Democratie
+            </p>
+
+            {/* Tags Row */}
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-600/30 backdrop-blur-md rounded border border-white/10">
+                <FileText className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-[12px] font-medium text-white/90">Politic</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-600/30 backdrop-blur-md rounded border border-white/10">
+                <CalendarDays className="w-3.5 h-3.5 text-white/80" />
+                <span className="text-[12px] font-medium text-white/90">Alegeri 2025</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-600/30 backdrop-blur-md rounded border border-white/10">
+                <div className="w-[7px] h-[7px] rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.6)]" />
+                <span className="text-[12px] font-medium text-white/90">Discuție activă</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/60 backdrop-blur-md rounded-md">
-            <Clock className="w-3.5 h-3.5 text-gray-400" />
-            <span className="text-xs font-medium text-gray-200">Alegeri 2025</span>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/60 backdrop-blur-md rounded-md">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-xs font-medium text-gray-200">Discuție activă</span>
+
+          {/* Action Bar (Right) */}
+          <div className="w-[70px] flex flex-col items-center justify-end gap-5 pb-5 pr-2">
+            <button className="flex flex-col items-center gap-1 group">
+              <Heart className="w-8 h-8 text-white fill-white drop-shadow-lg group-active:scale-95 transition-transform" />
+              <span className="text-[12px] font-bold text-white drop-shadow-md">12.4K</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 group">
+              <MessageSquareMore className="w-8 h-8 text-white fill-white drop-shadow-lg group-active:scale-95 transition-transform" />
+              <span className="text-[12px] font-bold text-white drop-shadow-md">256</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 group">
+              <Share className="w-8 h-8 text-white fill-white drop-shadow-lg group-active:scale-95 transition-transform" />
+              <span className="text-[12px] font-bold text-white drop-shadow-md">1.2K</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1.5 mt-2 group">
+              <div className="p-3 bg-black/40 rounded-full backdrop-blur-md border border-white/20 group-active:scale-95 transition-transform shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                <Scale className="w-[22px] h-[22px] text-white" />
+              </div>
+              <span className="text-[11px] font-medium text-white/90 drop-shadow-md">Dezbatere</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1.5 mt-2 group relative">
+              <div className="absolute inset-0 bg-purple-600/80 rounded-full blur-xl pointer-events-none scale-150" />
+              <div className="relative p-3 bg-[#1E0D35]/80 rounded-full backdrop-blur-md border border-purple-400/40 group-active:scale-95 transition-transform z-10 shadow-[0_0_15px_rgba(168,85,247,0.8)]">
+                <Sparkles className="w-[22px] h-[22px] text-purple-100" />
+              </div>
+              <span className="text-[11px] font-medium text-purple-50 drop-shadow-md z-10">Explică AI</span>
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* --- COMMENT INPUT ROW --- */}
-      <div className="absolute bottom-[72px] left-0 right-0 px-4 z-20">
-        <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-full px-3 py-2">
-          <img 
-             src="https://i.pravatar.cc/150?u=a042581f4e29026024d" 
-             className="w-7 h-7 rounded-full"
-             alt="User"
-          />
-          <input 
-            type="text" 
-            placeholder="Adaugă un comentariu..." 
-            className="flex-1 bg-transparent text-sm text-white placeholder-gray-400 outline-none"
-          />
-          <button className="text-gray-400 hover:text-white transition-colors">
-            <Send className="w-5 h-5" />
-          </button>
+        {/* Comment Input Bar */}
+        <div className="px-4 pb-[85px] pointer-events-auto">
+          <div className="flex items-center gap-3 bg-black/30 backdrop-blur-xl rounded-full px-1 py-1 border border-white/10 shadow-lg">
+            <img 
+               src="https://i.pravatar.cc/150?u=a042581f4e29026024" 
+               className="w-[34px] h-[34px] rounded-full ml-0.5 border border-white/20"
+               alt="User"
+            />
+            <input 
+              type="text" 
+              placeholder="Adaugă un comentariu..." 
+              className="flex-1 bg-transparent text-[14px] font-medium text-white placeholder-white/60 outline-none pb-0.5"
+            />
+            <button className="pr-3 pl-1 opacity-70 hover:opacity-100 transition-opacity">
+              <Send className="w-[18px] h-[18px] text-white" />
+            </button>
+          </div>
         </div>
+
       </div>
 
       {/* --- FIXED BOTTOM NAVIGATION --- */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-xl border-t border-gray-800/60 z-30 px-6">
-        <div className="flex items-center justify-between h-full">
-          <button className="flex flex-col items-center gap-1">
-            <Home className="w-6 h-6 text-white" />
-            <span className="text-[10px] font-medium text-white">Acasă</span>
+      <div className="absolute bottom-0 left-0 right-0 h-[85px] bg-[#0A0A0A] border-t border-white/5 z-30 px-6 pt-3 pb-6 pointer-events-auto">
+        <div className="flex items-start justify-between h-full">
+          <button className="flex flex-col items-center gap-1.5 w-14">
+            <Home className="w-[26px] h-[26px] text-white fill-white" />
+            <span className="text-[10px] font-bold text-white tracking-wide">Acasă</span>
           </button>
 
-          <button className="flex flex-col items-center gap-1">
-            <Compass className="w-6 h-6 text-gray-500" />
-            <span className="text-[10px] font-medium text-gray-500">Explorează</span>
+          <button className="flex flex-col items-center gap-1.5 w-14">
+            <Compass className="w-[26px] h-[26px] text-gray-500" />
+            <span className="text-[10px] font-medium text-gray-500 tracking-wide">Explorează</span>
           </button>
 
-          <button className="relative -top-3 w-12 h-10 bg-blue-500 hover:bg-blue-400 transition-colors rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)]">
-            <Plus className="w-6 h-6 text-white" />
+          {/* Central Plus Button */}
+          <button className="relative -top-2 w-[52px] h-[38px] bg-blue-500 rounded-[18px] flex items-center justify-center shadow-[0_0_14px_rgba(59,130,246,0.6)] active:scale-95 transition-transform">
+            <Plus className="w-6 h-6 text-white stroke-[3]" />
           </button>
 
-          <button className="flex flex-col items-center gap-1 relative">
+          <button className="flex flex-col items-center gap-1.5 w-14 relative">
             <div className="relative">
-              <Bell className="w-6 h-6 text-gray-500" />
-              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-black flex items-center justify-center">
-                <span className="text-[8px] font-bold text-white">3</span>
+              <Bell className="w-[26px] h-[26px] text-gray-500" />
+              <div className="absolute top-0 right-0 w-[14px] h-[14px] bg-red-500 rounded-full border-[2px] border-[#0A0A0A] flex items-center justify-center translate-x-1 -translate-y-0.5">
+                <span className="text-[9px] font-bold text-white leading-none">3</span>
               </div>
             </div>
-            <span className="text-[10px] font-medium text-gray-500">Notificări</span>
+            <span className="text-[10px] font-medium text-gray-500 tracking-wide">Notificări</span>
           </button>
 
-          <button className="flex flex-col items-center gap-1">
-            <User className="w-6 h-6 text-gray-500" />
-            <span className="text-[10px] font-medium text-gray-500">Profil</span>
+          <button className="flex flex-col items-center gap-1.5 w-14">
+            <User className="w-[26px] h-[26px] text-gray-500" />
+            <span className="text-[10px] font-medium text-gray-500 tracking-wide">Profil</span>
           </button>
         </div>
       </div>
 
-      {/* Custom styles to hide scrollbar */}
+      {/* Custom Global Styles */}
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
         .no-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </main>
