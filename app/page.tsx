@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Menu, Plus, Search, MessageCircle, ImageIcon,
+  Menu, Plus, Search, MessageCircle,
   Home, PlaySquare, Users, Bell, UserCircle2, X
 } from 'lucide-react';
 import FeedPost, { Post } from '@/components/FeedPost';
@@ -275,8 +275,8 @@ export default function Feed() {
               >
                 La ce te gândești?
               </button>
-              <button onClick={() => setShowCreateModal(true)} className="p-1">
-                <ImageIcon className="w-6 h-6 text-gray-500 fill-gray-500/20" />
+              <button onClick={() => setShowCreateModal(true)} className="p-1" aria-label="Adaugă media">
+                <CreateMediaIcon />
               </button>
             </div>
 
@@ -408,6 +408,33 @@ function IconButton({ icon, badge, onClick }: { icon: React.ReactNode, badge?: s
         </span>
       )}
     </button>
+  );
+}
+
+function CreateMediaIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[24px] w-[24px]" fill="none" aria-hidden="true">
+      <path
+        d="M9 4.4h8.2c1.9 0 3 1.05 3 2.95v8.15"
+        stroke="#3183F7"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="3.9" y="6.6" width="14.2" height="14.2" rx="3.2" fill="#3183F7" />
+      <path
+        d="M11 10.2v7"
+        stroke="#FFFFFF"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
+      <path
+        d="M7.5 13.7h7"
+        stroke="#FFFFFF"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
