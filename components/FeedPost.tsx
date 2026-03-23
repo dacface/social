@@ -54,6 +54,7 @@ export default function FeedPost({ post }: FeedPostProps) {
   const [isFullTextExpanded, setIsFullTextExpanded] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [isCommentComposerOpen, setIsCommentComposerOpen] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
@@ -210,9 +211,23 @@ export default function FeedPost({ post }: FeedPostProps) {
   };
 
   const focusCommentComposer = () => {
-    commentInputRef.current?.focus();
-    commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setIsCommentComposerOpen(true);
   };
+
+  useEffect(() => {
+    if (!isCommentComposerOpen) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      commentInputRef.current?.focus();
+      commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 20);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isCommentComposerOpen]);
 
   const buildPostShareUrl = () => {
     if (typeof window === 'undefined') {
@@ -377,7 +392,7 @@ export default function FeedPost({ post }: FeedPostProps) {
 
         {/* TEXT CONTENT */}
         <div className="px-4 pb-3">
-          <p className="text-[15px] text-[#050505] leading-[1.35] whitespace-pre-wrap">
+          <p className="text-[15px] text-[#1f2328] leading-[1.48] whitespace-pre-wrap">
             {collapsedCaption}
             {post.hasMoreText && (
               <button
@@ -479,49 +494,51 @@ export default function FeedPost({ post }: FeedPostProps) {
         </div>
 
         {/* COMMENT INPUT */}
-        <div className="px-4 py-2 flex items-start gap-2">
-          <img 
-            src="https://i.pravatar.cc/150?u=current_user" 
-            className="w-8 h-8 rounded-full object-cover border border-black/5 mt-1"
-            alt="You"
-          />
-          <div className="flex-1 min-h-[40px] bg-[#F0F2F5] rounded-2xl flex items-center px-3 gap-2">
-            <input 
-              ref={commentInputRef}
-              type="text"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submitComment()}
-              placeholder="Scrie un comentariu..."
-              className="flex-1 bg-transparent text-[#050505] text-[15px] placeholder-[#65676b] outline-none"
+        {isCommentComposerOpen ? (
+          <div className="px-4 py-2 flex items-start gap-2">
+            <img 
+              src="https://i.pravatar.cc/150?u=current_user" 
+              className="w-8 h-8 rounded-full object-cover border border-black/5 mt-1"
+              alt="You"
             />
-            {commentAttachmentName ? (
-              <span className="rounded-full bg-white px-2 py-1 text-[12px] font-semibold text-[#1877F2]">
-                {commentAttachmentName}
-              </span>
-            ) : null}
-            <div className="flex items-center gap-2 text-[#65676b]">
-              {!commentText.trim() ? (
-                <>
-                  <button onClick={() => handleQuickReaction('😊')} className="rounded-full p-1 hover:bg-white" aria-label="Adaugă emoji">
-                    <Smile className="w-5 h-5" />
+            <div className="flex-1 min-h-[40px] bg-[#F0F2F5] rounded-2xl flex items-center px-3 gap-2">
+              <input 
+                ref={commentInputRef}
+                type="text"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitComment()}
+                placeholder="Scrie un comentariu..."
+                className="flex-1 bg-transparent text-[#050505] text-[15px] placeholder-[#65676b] outline-none"
+              />
+              {commentAttachmentName ? (
+                <span className="rounded-full bg-white px-2 py-1 text-[12px] font-semibold text-[#1877F2]">
+                  {commentAttachmentName}
+                </span>
+              ) : null}
+              <div className="flex items-center gap-2 text-[#65676b]">
+                {!commentText.trim() ? (
+                  <>
+                    <button onClick={() => handleQuickReaction('😊')} className="rounded-full p-1 hover:bg-white" aria-label="Adaugă emoji">
+                      <Smile className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => commentAttachmentInputRef.current?.click()}
+                      className="rounded-full p-1 hover:bg-white"
+                      aria-label="Atașează o imagine"
+                    >
+                      <Camera className="w-5 h-5" />
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={submitComment} className="text-[#1877F2] p-1">
+                    <Send className="w-5 h-5 fill-current" />
                   </button>
-                  <button
-                    onClick={() => commentAttachmentInputRef.current?.click()}
-                    className="rounded-full p-1 hover:bg-white"
-                    aria-label="Atașează o imagine"
-                  >
-                    <Camera className="w-5 h-5" />
-                  </button>
-                </>
-              ) : (
-                <button onClick={submitComment} className="text-[#1877F2] p-1">
-                  <Send className="w-5 h-5 fill-current" />
-                </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
         <input
           ref={commentAttachmentInputRef}
           type="file"
