@@ -52,6 +52,7 @@ export default function FeedPost({ post }: FeedPostProps) {
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isFullTextExpanded, setIsFullTextExpanded] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const articleRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -257,6 +258,7 @@ export default function FeedPost({ post }: FeedPostProps) {
   };
 
   const handleSavePost = () => {
+    setIsSaved(true);
     setIsPostMenuOpen(false);
     showToast('Postarea a fost salvată.');
   };
@@ -309,7 +311,6 @@ export default function FeedPost({ post }: FeedPostProps) {
     post.hasMoreText && !isFullTextExpanded && post.caption.length > 180
       ? `${post.caption.slice(0, 180).trimEnd()}...`
       : post.caption;
-  const dominantReaction = getDominantReaction(post, likeCount, isLiked);
   const hasMedia = Boolean(post.imageUrl || post.videoUrl);
 
   if (isHidden) {
@@ -464,16 +465,11 @@ export default function FeedPost({ post }: FeedPostProps) {
             </div>
 
             <button
-              onClick={handleLike}
-              className="flex shrink-0 items-center"
-              aria-label="Vezi reacțiile principale"
+              onClick={handleSavePost}
+              className="flex shrink-0 items-center text-[#65676b]"
+              aria-label="Salvează postarea"
             >
-              <span
-                title={dominantReaction.label}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[16px] shadow-sm"
-              >
-                {dominantReaction.emoji}
-              </span>
+              <Bookmark className={`h-[22px] w-[22px] ${isSaved ? 'fill-current text-[#050505]' : 'text-[#65676b]'}`} strokeWidth={1.9} />
             </button>
           </div>
         </div>
@@ -700,24 +696,6 @@ function VerifiedBadge() {
       </svg>
     </div>
   );
-}
-
-function getDominantReaction(post: Post, likeCount: number, isLiked: boolean) {
-  const total = Math.max(1, likeCount + (isLiked ? 1 : 0));
-  const seed = Array.from(post.id).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const variants = [
-    { key: 'love', emoji: '❤️', label: 'Ador', ratio: 0.46 + (seed % 7) * 0.015 },
-    { key: 'laugh', emoji: '😂', label: 'Haha', ratio: 0.24 + (seed % 5) * 0.01 },
-    { key: 'angry', emoji: '😡', label: 'Furios', ratio: 0.14 + (seed % 3) * 0.01 },
-  ];
-
-  const normalized = variants.map((reaction, index) => {
-    const remainderPenalty = index === 0 ? 0 : variants.slice(0, index).reduce((sum, item) => sum + item.ratio, 0) * 0.08;
-    const count = Math.max(1, Math.round(total * Math.max(0.1, reaction.ratio - remainderPenalty)));
-    return { ...reaction, count };
-  });
-
-  return normalized.sort((a, b) => b.count - a.count)[0];
 }
 
 function ActionSheet({
