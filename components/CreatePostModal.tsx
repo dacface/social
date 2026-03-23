@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { X, ImagePlus, Globe2, Users, ChevronDown, Loader2, MapPin, Hash } from 'lucide-react';
-
-import { clientStorage } from '@/lib/firebase';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -64,16 +61,25 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
 
       if (imageFile) {
         try {
-          const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '-');
-          const storageRef = ref(clientStorage, `posts/${Date.now()}-${safeName}`);
-          const snapshot = await uploadBytes(storageRef, imageFile, {
-            contentType: imageFile.type || 'application/octet-stream',
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', imageFile);
+
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: uploadFormData,
           });
 
-          imageUrl = await getDownloadURL(snapshot.ref);
+          const uploadData = await readJsonSafely(uploadResponse);
+
+          if (!uploadResponse.ok) {
+            console.error('[CreatePost] Image upload failed', uploadData);
+            throw new Error(getApiErrorMessage(uploadData, 'Imaginea nu a putut fi încărcată.'));
+          }
+
+          imageUrl = getUploadUrl(uploadData);
         } catch (uploadError) {
-          console.error('[CreatePost] Client Storage upload failed', uploadError);
-          throw new Error(getFirebaseStorageErrorMessage(uploadError));
+          console.error('[CreatePost] Server upload failed', uploadError);
+          throw new Error(getUploadErrorMessage(uploadError));
         }
       }
 
@@ -250,24 +256,17 @@ function getApiErrorMessage(payload: unknown, fallback: string) {
   return fallback;
 }
 
-function getFirebaseStorageErrorMessage(error: unknown) {
-  if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'string') {
-    switch (error.code) {
-      case 'storage/unauthorized':
-        return 'Nu există permisiuni pentru încărcarea imaginilor în Firebase Storage.';
-      case 'storage/canceled':
-        return 'Încărcarea imaginii a fost anulată.';
-      case 'storage/quota-exceeded':
-        return 'Spațiul Firebase Storage a depășit limita disponibilă.';
-      case 'storage/retry-limit-exceeded':
-        return 'Încărcarea imaginii a expirat. Încearcă din nou.';
-      default:
-        break;
-    }
+function getUploadUrl(payload: unknown) {
+  if (payload && typeof payload === 'object' && 'url' in payload && typeof payload.url === 'string') {
+    return payload.url;
   }
 
+  throw new Error('Serverul nu a returnat URL-ul imaginii încărcate.');
+}
+
+function getUploadErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
-    return `Imaginea nu a putut fi încărcată: ${error.message}`;
+    return error.message;
   }
 
   return 'Imaginea nu a putut fi încărcată.';
