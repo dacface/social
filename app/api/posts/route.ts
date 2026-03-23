@@ -28,14 +28,20 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const type = getContentType(body.type);
     const userId = getOptionalString(body.userId) || 'anonymous';
     const userName = getOptionalString(body.userName) || 'Utilizator';
     const userAvatar = getOptionalString(body.userAvatar) || 'https://i.pravatar.cc/150?u=default';
     const text = getOptionalString(body.text).trim();
     const imageUrl = getOptionalString(body.imageUrl).trim();
+    const videoUrl = getOptionalString(body.videoUrl).trim();
     const isVerified = Boolean(body.isVerified);
 
-    if (!text && !imageUrl) {
+    if (type === 'reel' && !videoUrl) {
+      return NextResponse.json({ error: 'Reel must contain a video' }, { status: 400 });
+    }
+
+    if (type === 'post' && !text && !imageUrl) {
       return NextResponse.json({ error: 'Post must contain text or image' }, { status: 400 });
     }
 
@@ -43,9 +49,11 @@ export async function POST(req: NextRequest) {
     const aiTag = aiScore >= 80 ? 'credibil' : 'suspect';
 
     console.log('[POST /api/posts] Creating post', {
+      type,
       userId,
       hasText: Boolean(text),
       hasImage: Boolean(imageUrl),
+      hasVideo: Boolean(videoUrl),
     });
 
     await ensureUserDocument({
@@ -58,12 +66,14 @@ export async function POST(req: NextRequest) {
     const docRef = db.collection('posts').doc();
 
     await docRef.set({
+      type,
       userId,
       userName,
       userAvatar,
       isVerified,
       text,
       imageUrl,
+      videoUrl,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       likesCount: 0,
@@ -79,7 +89,10 @@ export async function POST(req: NextRequest) {
     if (!createdDoc.exists) {
       console.error('[POST /api/posts] Post write completed but document could not be reloaded', { postId: docRef.id });
       return NextResponse.json(
-        { success: true, post: buildOptimisticPost({ id: docRef.id, userName, userAvatar, isVerified, text, imageUrl }) },
+        {
+          success: true,
+          post: buildOptimisticPost({ id: docRef.id, type, userName, userAvatar, isVerified, text, imageUrl, videoUrl }),
+        },
         { status: 201 }
       );
     }
@@ -122,4 +135,8 @@ async function ensureUserDocument(input: {
 
 function getOptionalString(value: unknown) {
   return typeof value === 'string' ? value : '';
+}
+
+function getContentType(value: unknown): 'post' | 'reel' {
+  return value === 'reel' ? 'reel' : 'post';
 }

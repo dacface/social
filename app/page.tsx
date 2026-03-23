@@ -8,6 +8,8 @@ import {
 import FeedPost, { Post } from '@/components/FeedPost';
 import ProfileView from '@/components/ProfileView';
 import CreatePostModal from '@/components/CreatePostModal';
+import CreateReelModal from '@/components/CreateReelModal';
+import ReelsView from '@/components/ReelsView';
 
 const MOCK_STORIES = [
   { id: 1, name: "Aiana Maria Rada", avatar: "https://i.pravatar.cc/150?u=1", image: "https://images.unsplash.com/photo-1541872596495-25b8431945ae?q=80&w=400&auto=format&fit=crop" },
@@ -21,13 +23,23 @@ const MOCK_STORIES = [
 export default function Feed() {
   const [activeNav, setActiveNav] = useState('home');
   const [posts, setPosts] = useState<Post[]>([]);
+  const [reels, setReels] = useState<Post[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateReelModal, setShowCreateReelModal] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingReels, setLoadingReels] = useState(true);
   const [feedError, setFeedError] = useState('');
+  const [reelsError, setReelsError] = useState('');
 
   const handlePostCreated = (newPost: Post) => {
     setFeedError('');
     setPosts(prev => [newPost, ...prev]);
+  };
+
+  const handleReelCreated = (newReel: Post) => {
+    setReelsError('');
+    setReels(prev => [newReel, ...prev]);
+    setActiveNav('reels');
   };
 
   useEffect(() => {
@@ -54,12 +66,48 @@ export default function Feed() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    async function fetchReels() {
+      try {
+        setLoadingReels(true);
+        setReelsError('');
+        const res = await fetch('/api/reels?limit=8', { cache: 'no-store' });
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error('[Reels] Failed to load reels', data);
+          throw new Error(data.error || 'Reels-urile nu au putut fi încărcate.');
+        }
+
+        setReels(Array.isArray(data.reels) ? data.reels : []);
+      } catch (err) {
+        console.error('[Reels] Failed to fetch reels from Firestore', err);
+        setReelsError('Reels-urile nu au putut fi încărcate. Încearcă din nou.');
+      } finally {
+        setLoadingReels(false);
+      }
+    }
+
+    fetchReels();
+  }, []);
+
+  const openPrimaryComposer = () => {
+    if (activeNav === 'reels') {
+      setShowCreateReelModal(true);
+      return;
+    }
+
+    setShowCreateModal(true);
+  };
+
   return (
     <main className="w-full min-h-screen bg-[#c9ccd1] font-sans pb-[70px] sm:pb-0">
       <div className="bg-white max-w-[600px] mx-auto min-h-screen shadow-sm relative">
         
         {activeNav === 'profile' ? (
           <ProfileView />
+        ) : activeNav === 'reels' ? (
+          <ReelsView reels={reels} loading={loadingReels} error={reelsError} onCreateReel={() => setShowCreateReelModal(true)} />
         ) : (
           <>
             {/* Top Navigation */}
@@ -75,7 +123,7 @@ export default function Feed() {
 
                 {/* Right icons */}
                 <div className="flex items-center gap-2">
-                  <IconButton icon={<Plus className="w-[22px] h-[22px]" />} />
+                  <IconButton icon={<Plus className="w-[22px] h-[22px]" />} onClick={openPrimaryComposer} />
                   <IconButton icon={<Search className="w-[22px] h-[22px]" />} />
                   <IconButton icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />} badge="2" />
                 </div>
@@ -167,6 +215,11 @@ export default function Feed() {
           onClose={() => setShowCreateModal(false)} 
           onPostCreated={handlePostCreated} 
         />
+        <CreateReelModal
+          isOpen={showCreateReelModal}
+          onClose={() => setShowCreateReelModal(false)}
+          onReelCreated={handleReelCreated}
+        />
 
       </div>
 
@@ -183,9 +236,9 @@ export default function Feed() {
   );
 }
 
-function IconButton({ icon, badge }: { icon: React.ReactNode, badge?: string }) {
+function IconButton({ icon, badge, onClick }: { icon: React.ReactNode, badge?: string, onClick?: () => void }) {
   return (
-    <button className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors text-black">
+    <button onClick={onClick} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors text-black">
       {icon}
       {badge && (
         <span className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-red-600 border-[2px] border-white text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none z-10">

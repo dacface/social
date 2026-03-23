@@ -2,6 +2,7 @@ import type { DocumentData, DocumentSnapshot, Timestamp } from 'firebase-admin/f
 
 export interface FeedPostRecord {
   id: string;
+  type: 'post' | 'reel';
   authorName: string;
   authorAvatar: string;
   isVerified: boolean;
@@ -13,6 +14,7 @@ export interface FeedPostRecord {
   comments: number;
   shares: number;
   imageUrl: string;
+  videoUrl: string;
 }
 
 const DEFAULT_AVATAR = 'https://i.pravatar.cc/150?u=default';
@@ -33,6 +35,7 @@ export function mapPostDocument(doc: DocumentSnapshot<DocumentData>): FeedPostRe
 
   return {
     id: doc.id,
+    type: getContentType(data.type),
     authorName: getString(data.userName) || DEFAULT_NAME,
     authorAvatar: getString(data.userAvatar) || DEFAULT_AVATAR,
     isVerified: Boolean(data.isVerified),
@@ -44,21 +47,25 @@ export function mapPostDocument(doc: DocumentSnapshot<DocumentData>): FeedPostRe
     comments,
     shares,
     imageUrl: getString(data.imageUrl),
+    videoUrl: getString(data.videoUrl),
   };
 }
 
 export function buildOptimisticPost(input: {
   id: string;
+  type?: 'post' | 'reel';
   userName?: string;
   userAvatar?: string;
   isVerified?: boolean;
   text?: string;
   imageUrl?: string;
+  videoUrl?: string;
 }): FeedPostRecord {
   const caption = input.text?.trim() ?? '';
 
   return {
     id: input.id,
+    type: input.type ?? 'post',
     authorName: input.userName?.trim() || DEFAULT_NAME,
     authorAvatar: input.userAvatar?.trim() || DEFAULT_AVATAR,
     isVerified: Boolean(input.isVerified),
@@ -70,6 +77,7 @@ export function buildOptimisticPost(input: {
     comments: 0,
     shares: 0,
     imageUrl: input.imageUrl?.trim() ?? '',
+    videoUrl: input.videoUrl?.trim() ?? '',
   };
 }
 
@@ -105,6 +113,10 @@ function getString(value: unknown) {
 
 function getCount(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function getContentType(value: unknown): 'post' | 'reel' {
+  return value === 'reel' ? 'reel' : 'post';
 }
 
 function formatTime(timestampMs: number) {

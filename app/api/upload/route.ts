@@ -6,7 +6,8 @@ import { getAdminStorageBucketCandidates } from '@/lib/firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024;
 
 export async function POST(req: Request) {
   try {
@@ -17,12 +18,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'Only image uploads are supported' }, { status: 400 });
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      return NextResponse.json({ error: 'Only image and video uploads are supported' }, { status: 400 });
     }
 
-    if (file.size <= 0 || file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json({ error: 'Image must be between 1 byte and 10 MB' }, { status: 400 });
+    const maxSizeBytes = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+
+    if (file.size <= 0 || file.size > maxSizeBytes) {
+      return NextResponse.json(
+        { error: isVideo ? 'Video must be between 1 byte and 50 MB' : 'Image must be between 1 byte and 10 MB' },
+        { status: 400 }
+      );
     }
 
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');

@@ -10,6 +10,7 @@ import AiAnalysisModal from './AiAnalysisModal';
 
 export interface Post {
   id: string;
+  type?: 'post' | 'reel';
   authorName: string;
   authorAvatar: string;
   isVerified: boolean;
@@ -25,6 +26,7 @@ export interface Post {
   comments: number;
   shares: number;
   imageUrl?: string;
+  videoUrl?: string;
 }
 
 interface FeedPostProps {
@@ -113,7 +115,18 @@ export default function FeedPost({ post }: FeedPostProps) {
         </div>
 
         {/* MEDIA */}
-        {post.imageUrl && (
+        {post.videoUrl ? (
+          <div className="w-full bg-gray-100">
+            <video
+              src={post.videoUrl}
+              className="w-full h-auto object-cover"
+              controls
+              loop
+              playsInline
+              preload="metadata"
+            />
+          </div>
+        ) : post.imageUrl ? (
           <div className="w-full bg-gray-100">
             <img 
               src={post.imageUrl} 
@@ -121,7 +134,7 @@ export default function FeedPost({ post }: FeedPostProps) {
               className="w-full h-auto object-cover"
             />
           </div>
-        )}
+        ) : null}
 
         {/* STATS ROW */}
         <div className="px-4 py-2.5 flex items-center justify-between text-[#65676b] text-[13px] sm:text-[14px]">
