@@ -392,7 +392,7 @@ export default function FeedPost({ post }: FeedPostProps) {
 
         {/* TEXT CONTENT */}
         <div className="px-4 pb-3">
-          <p className="text-[15px] text-[#1a1d21] leading-[1.48] whitespace-pre-wrap">
+          <p className="text-[15px] tracking-[-0.006em] text-[#1a1d21] leading-[1.54] whitespace-pre-wrap">
             {collapsedCaption}
             {post.hasMoreText && (
               <button
