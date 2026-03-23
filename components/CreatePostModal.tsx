@@ -2,13 +2,24 @@
 
 import React, { useState, useRef } from 'react';
 import { X, ImagePlus, Globe2, Users, ChevronDown, Loader2, MapPin, Hash } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { clientStorage } from '@/lib/firebase';
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPostCreated: (post: any) => void;
+  onPostCreated: (post: {
+    id: string;
+    authorName: string;
+    authorAvatar: string;
+    isVerified: boolean;
+    time: string;
+    caption: string;
+    hasMoreText: boolean;
+    likes: number;
+    likesText: string;
+    comments: number;
+    shares: number;
+    imageUrl: string;
+  }) => void;
 }
 
 export default function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostModalProps) {
@@ -48,16 +59,37 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
     try {
       let imageUrl = '';
 
-      // Upload image to Firebase Storage if exists
       if (imageFile) {
-        console.log('[CreatePost] Uploading image to Firebase Storage...');
-        const storageRef = ref(clientStorage, `posts/${Date.now()}_${imageFile.name}`);
-        const snapshot = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
-        console.log('[CreatePost] Image uploaded successfully:', imageUrl);
+        console.log('[CreatePost] Uploading image through /api/upload', {
+          name: imageFile.name,
+          size: imageFile.size,
+          type: imageFile.type,
+        });
+
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', imageFile);
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        const uploadData = await readJsonSafely(uploadResponse);
+
+        if (!uploadResponse.ok) {
+          console.error('[CreatePost] Image upload failed', uploadData);
+          throw new Error(getApiErrorMessage(uploadData, 'Imaginea nu a putut fi încărcată.'));
+        }
+
+        imageUrl = uploadData.url || '';
+        console.log('[CreatePost] Image uploaded successfully', { imageUrl });
       }
 
-      // Send to API
+      console.log('[CreatePost] Creating Firestore post', {
+        hasText: Boolean(text.trim()),
+        hasImage: Boolean(imageUrl),
+      });
+
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,10 +103,11 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
         }),
       });
 
-      const data = await res.json();
+      const data = await readJsonSafely(res);
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to create post');
+        console.error('[CreatePost] Post creation failed', data);
+        throw new Error(getApiErrorMessage(data, 'Postarea nu a putut fi creată.'));
       }
 
       onPostCreated(data.post);
@@ -84,9 +117,14 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
       setImageFile(null);
       setImagePreview(null);
       onClose();
-    } catch (err: any) {
-      console.error('Post creation error:', err);
-      setError(err.message || 'A apărut o eroare. Încearcă din nou.');
+    } catch (err: unknown) {
+      console.error('[CreatePost] Post creation error', err);
+      if (err instanceof TypeError) {
+        setError('Cererea nu a putut fi trimisă. Verifică serverul și încearcă din nou.');
+        return;
+      }
+
+      setError(err instanceof Error ? err.message : 'A apărut o eroare. Încearcă din nou.');
     } finally {
       setIsPosting(false);
     }
@@ -199,4 +237,23 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
       </div>
     </div>
   );
+}
+
+async function readJsonSafely(response: Response) {
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  const text = await response.text();
+  return text ? { error: text } : {};
+}
+
+function getApiErrorMessage(payload: unknown, fallback: string) {
+  if (payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string') {
+    return payload.error;
+  }
+
+  return fallback;
 }

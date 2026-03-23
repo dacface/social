@@ -23,23 +23,30 @@ export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [feedError, setFeedError] = useState('');
 
   const handlePostCreated = (newPost: Post) => {
+    setFeedError('');
     setPosts(prev => [newPost, ...prev]);
   };
 
-  // Fetch posts from Firestore on mount
   useEffect(() => {
     async function fetchPosts() {
       try {
         setLoadingPosts(true);
-        const res = await fetch('/api/posts?limit=20');
+        setFeedError('');
+        const res = await fetch('/api/feed?limit=20', { cache: 'no-store' });
         const data = await res.json();
-        if (data.posts) {
-          setPosts(data.posts);
+
+        if (!res.ok) {
+          console.error('[Feed] Failed to load feed', data);
+          throw new Error(data.error || 'Feed-ul nu a putut fi încărcat.');
         }
+
+        setPosts(Array.isArray(data.posts) ? data.posts : []);
       } catch (err) {
-        console.error('Failed to fetch posts from Firestore:', err);
+        console.error('[Feed] Failed to fetch posts from Firestore', err);
+        setFeedError('Feed-ul nu a putut fi încărcat. Încearcă din nou.');
       } finally {
         setLoadingPosts(false);
       }
@@ -130,6 +137,10 @@ export default function Feed() {
                 <div className="flex items-center justify-center py-10">
                   <div className="w-8 h-8 border-3 border-gray-300 border-t-[#1877F2] rounded-full animate-spin" />
                 </div>
+              ) : feedError ? (
+                <div className="flex flex-col items-center justify-center py-10 px-4 bg-white">
+                  <p className="text-[16px] font-semibold text-[#65676b] text-center">{feedError}</p>
+                </div>
               ) : posts.length > 0 ? (
                 posts.map((post) => (
                   <React.Fragment key={post.id}>
@@ -197,7 +208,17 @@ function BottomNav({ activeNav, setActiveNav }: { activeNav: string, setActiveNa
   );
 }
 
-function NavButton({ id, icon: Icon, label, activeNav, setActiveNav, badge, isBlue }: any) {
+interface NavButtonProps {
+  id: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  label: string;
+  activeNav: string;
+  setActiveNav: (value: string) => void;
+  badge?: string;
+  isBlue?: boolean;
+}
+
+function NavButton({ id, icon: Icon, label, activeNav, setActiveNav, badge, isBlue }: NavButtonProps) {
   const isActive = activeNav === id;
   const colorClass = (isActive || isBlue && id === 'home' && isActive) ? 'text-[#1877F2]' : 'text-[#65676b]';
   const fillClass = isActive ? 'fill-current' : '';
