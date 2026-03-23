@@ -616,7 +616,7 @@ function InstagramLoveIcon({ active, animate }: { active?: boolean; animate?: bo
   return (
     <svg
       viewBox="0 0 24 24"
-      className={`h-[22px] w-[22px] ${active ? 'text-[#cf2338]' : 'text-[#262626]'}`}
+      className={`h-[24px] w-[24px] ${active ? 'text-[#cf2338]' : 'text-[#262626]'}`}
       fill="none"
       aria-hidden="true"
       style={{
