@@ -38,6 +38,7 @@ interface FeedPostProps {
 
 export default function FeedPost({ post }: FeedPostProps) {
   const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isLoveAnimating, setIsLoveAnimating] = useState(false);
   const [likeCount, setLikeCount] = useState<number>(post.likes);
   const [commentCount, setCommentCount] = useState<number>(post.comments);
   const [shareCount, setShareCount] = useState<number>(post.shares);
@@ -175,6 +176,7 @@ export default function FeedPost({ post }: FeedPostProps) {
   };
 
   const handleLike = () => {
+    setIsLoveAnimating(true);
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
     
@@ -187,6 +189,20 @@ export default function FeedPost({ post }: FeedPostProps) {
       }).catch(() => {});
     }
   };
+
+  useEffect(() => {
+    if (!isLoveAnimating) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsLoveAnimating(false);
+    }, 280);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isLoveAnimating]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -414,7 +430,7 @@ export default function FeedPost({ post }: FeedPostProps) {
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-5 overflow-x-auto no-scrollbar text-[#65676b]">
               <InlineStatButton
-                icon={<FacebookLoveIcon active={isLiked} />}
+                icon={<InstagramLoveIcon active={isLiked} animate={isLoveAnimating} />}
                 value={likeCount}
                 label="Ador"
                 onClick={handleLike}
@@ -448,7 +464,7 @@ export default function FeedPost({ post }: FeedPostProps) {
 
             <button
               onClick={handleLike}
-              className="flex shrink-0 items-center gap-1.5"
+              className="flex shrink-0 items-center"
               aria-label="Vezi reacțiile principale"
             >
               <span
@@ -457,7 +473,6 @@ export default function FeedPost({ post }: FeedPostProps) {
               >
                 {dominantReaction.emoji}
               </span>
-              <span className="text-[13px] font-semibold text-[#65676b]">{formatNum(dominantReaction.count)}</span>
             </button>
           </div>
         </div>
@@ -554,6 +569,19 @@ export default function FeedPost({ post }: FeedPostProps) {
           </div>
         </div>
       ) : null}
+      <style jsx global>{`
+        @keyframes instagram-heart-pop {
+          0% {
+            transform: translateY(0) scale(1);
+          }
+          35% {
+            transform: translateY(-4px) scale(1.18);
+          }
+          100% {
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
     </>
   );
 }
@@ -583,13 +611,22 @@ function InlineStatButton({
   );
 }
 
-function FacebookLoveIcon({ active }: { active?: boolean }) {
+function InstagramLoveIcon({ active, animate }: { active?: boolean; animate?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-[22px] w-[22px] ${active ? 'text-[#ff4d67]' : 'text-[#65676b]'}`} fill="none" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className={`h-[22px] w-[22px] ${active ? 'text-[#ed4956]' : 'text-[#262626]'}`}
+      fill="none"
+      aria-hidden="true"
+      style={{
+        animation: animate ? 'instagram-heart-pop 280ms cubic-bezier(0.2, 0.9, 0.2, 1)' : undefined,
+        transformOrigin: 'center',
+      }}
+    >
       <path
-        d="M12 20.3 4.9 13.5A4.6 4.6 0 0 1 11.4 7l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5L12 20.3Z"
+        d="M16.79 3.61c-1.7 0-3.08.73-4.01 1.92-.93-1.19-2.31-1.92-4.01-1.92C5.79 3.61 3.5 5.95 3.5 8.86c0 1.77.69 3.39 2.17 4.92l7.11 7.31 7.11-7.31c1.48-1.53 2.11-3.15 2.11-4.92 0-2.91-2.29-5.25-5.21-5.25Z"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.85"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill={active ? 'currentColor' : 'none'}
@@ -616,16 +653,9 @@ function FacebookShareIcon({ className = 'h-[22px] w-[22px]' }: { className?: st
   return (
     <svg viewBox="0 0 24 24" className={`${className} text-[#65676b]`} fill="none" aria-hidden="true">
       <path
-        d="M14.2 5.2 20 10l-5.8 4.8"
+        d="M13.2 4.8 21 10l-7.8 5.2V12.3c-4.7-.12-7.5 1.82-9.2 5.6.05-6.2 3.5-9.7 9.2-10V4.8Z"
         stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M19.4 10H10a5 5 0 0 0-5 5v2.4"
-        stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.55"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -641,13 +671,6 @@ function VerifiedBadge() {
       </svg>
     </div>
   );
-}
-
-function formatNum(num: number) {
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'mii';
-  }
-  return num.toString();
 }
 
 function getDominantReaction(post: Post, likeCount: number, isLiked: boolean) {
