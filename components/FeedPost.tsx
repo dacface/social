@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { 
-  MoreHorizontal, X, Globe2, ThumbsUp, MessageCircle, Share, 
-  MessageSquare, Camera, Smile, Send, Scale, Sparkles, Bookmark, Link2, Flag, ImagePlus
+  MoreHorizontal, X, Globe2,
+  Camera, Smile, Send, Scale, Sparkles, Bookmark, Link2, Flag, ImagePlus
 } from 'lucide-react';
 import DezbatereModal from './DezbatereModal';
 import AiAnalysisModal from './AiAnalysisModal';
@@ -293,6 +293,7 @@ export default function FeedPost({ post }: FeedPostProps) {
     post.hasMoreText && !isFullTextExpanded && post.caption.length > 180
       ? `${post.caption.slice(0, 180).trimEnd()}...`
       : post.caption;
+  const dominantReaction = getDominantReaction(post, likeCount, isLiked);
 
   if (isHidden) {
     return (
@@ -409,70 +410,57 @@ export default function FeedPost({ post }: FeedPostProps) {
           </div>
         ) : null}
 
-        {/* STATS ROW */}
-        <div className="px-4 py-2.5 flex items-center justify-between text-[#65676b] text-[13px] sm:text-[14px]">
-          <div className="flex items-center gap-1.5 hover:underline cursor-pointer">
-            <div className="flex items-center">
-              <div className="w-[18px] h-[18px] bg-[#1877F2] rounded-full flex items-center justify-center p-[3px]">
-                <ThumbsUp className="w-full h-full text-white fill-white" />
-              </div>
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-5 overflow-x-auto no-scrollbar text-[#65676b]">
+              <InlineStatButton
+                icon={<FacebookLoveIcon active={isLiked} />}
+                value={likeCount}
+                label="Ador"
+                onClick={handleLike}
+                isActive={isLiked}
+              />
+              <InlineStatButton
+                icon={<FacebookCommentIcon />}
+                value={commentCount}
+                label="Comentează"
+                onClick={focusCommentComposer}
+              />
+              <InlineStatButton
+                icon={<FacebookShareIcon />}
+                value={shareCount}
+                label="Distribuie"
+                onClick={() => setIsShareSheetOpen(true)}
+              />
+              <InlineStatButton
+                icon={<Scale className="h-[22px] w-[22px] text-[#65676b]" strokeWidth={1.9} />}
+                value={Math.max(1, Math.floor(commentCount / 3))}
+                label="Dezbatere"
+                onClick={() => setIsDezbatereOpen(true)}
+              />
+              <InlineStatButton
+                icon={<Sparkles className="h-[22px] w-[22px] text-[#65676b]" strokeWidth={1.9} />}
+                value={Math.max(1, Math.floor(likeCount / 8))}
+                label="Analiză AI"
+                onClick={() => setIsAiOpen(true)}
+              />
             </div>
-            <span>{post.likesText || formatNum(likeCount)}</span>
-          </div>
-          <div className="flex items-center gap-3">
+
             <button
-              onClick={focusCommentComposer}
-              className="flex items-center gap-1.5 hover:underline cursor-pointer"
+              onClick={handleLike}
+              className="flex shrink-0 items-center gap-1.5"
+              aria-label="Vezi reacțiile principale"
             >
-              <MessageCircle className="w-[18px] h-[18px] text-[#65676b]" strokeWidth={2} />
-              <span>{commentCount}</span>
-            </button>
-            <button
-              onClick={() => setIsShareSheetOpen(true)}
-              className="flex items-center gap-1.5 hover:underline cursor-pointer"
-            >
-              <Share className="w-[18px] h-[18px] text-[#65676b]" strokeWidth={2} />
-              <span>{shareCount}</span>
+              <span
+                title={dominantReaction.label}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[16px] shadow-sm"
+              >
+                {dominantReaction.emoji}
+              </span>
+              <span className="text-[13px] font-semibold text-[#65676b]">{formatNum(dominantReaction.count)}</span>
             </button>
           </div>
         </div>
-
-        <div className="px-3 border-t border-gray-300 mx-3"></div>
-
-        {/* ACTION BUTTONS */}
-        {/* Equal width flex items, font-semibold text-[#65676b] */}
-        <div className="px-2 py-1 flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
-          
-          <ActionBtn 
-            icon={<ThumbsUp className={`w-5 h-5 ${isLiked ? 'text-[#1877F2] fill-current' : ''}`} />} 
-            label="Îmi place" 
-            isActive={isLiked}
-            onClick={handleLike} 
-          />
-          <ActionBtn 
-            icon={<MessageSquare className="w-5 h-5" />} 
-            label="Comentează" 
-            onClick={focusCommentComposer}
-          />
-          <ActionBtn 
-            icon={<Share className="w-5 h-5" />} 
-            label="Distribuie" 
-            onClick={() => setIsShareSheetOpen(true)}
-          />
-          <ActionBtn 
-            icon={<Scale className="w-5 h-5" />} 
-            label="Dezbatere" 
-            onClick={() => setIsDezbatereOpen(true)}
-          />
-          <ActionBtn 
-            icon={<Sparkles className="w-5 h-5" />} 
-            label="Analiză AI" 
-            onClick={() => setIsAiOpen(true)}
-          />
-          
-        </div>
-
-        <div className="px-3 border-t border-gray-300 mx-3 mb-2"></div>
 
         {/* COMMENT INPUT */}
         <div className="px-4 py-2 flex items-start gap-2">
@@ -546,7 +534,7 @@ export default function FeedPost({ post }: FeedPostProps) {
         title="Distribuie"
         onClose={() => setIsShareSheetOpen(false)}
         actions={[
-          { icon: <Share className="h-5 w-5" />, label: 'Distribuie acum', description: 'Publică imediat în feed-ul tău.', onClick: () => void handleQuickShare('feed') },
+          { icon: <FacebookShareIcon className="h-5 w-5" />, label: 'Distribuie acum', description: 'Publică imediat în feed-ul tău.', onClick: () => void handleQuickShare('feed') },
           { icon: <Send className="h-5 w-5" />, label: 'Trimite în mesaje', description: 'Pregătește postarea pentru conversații.', onClick: () => void handleQuickShare('messenger') },
           { icon: <ImagePlus className="h-5 w-5" />, label: 'Copiază linkul', description: 'Îl poți lipi oriunde ai nevoie.', onClick: () => void handleCopyLink() },
         ]}
@@ -570,15 +558,78 @@ export default function FeedPost({ post }: FeedPostProps) {
   );
 }
 
-function ActionBtn({ icon, label, onClick, isActive }: { icon: React.ReactNode, label: string, onClick?: () => void, isActive?: boolean }) {
+function InlineStatButton({
+  icon,
+  value,
+  label,
+  onClick,
+  isActive,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+  onClick?: () => void;
+  isActive?: boolean;
+}) {
   return (
     <button 
       onClick={onClick}
-      className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1.5 py-1.5 px-0.5 rounded-md hover:bg-[#F0F2F5] transition-colors whitespace-nowrap min-w-max ${isActive ? 'text-[#1877F2]' : 'text-[#65676b]'}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap transition-colors ${isActive ? 'text-[#ff4d67]' : 'text-[#65676b]'}`}
+      aria-label={label}
     >
       {icon}
-      <span className="text-[12px] sm:text-[13px] font-semibold tracking-wide">{label}</span>
+      <span className="text-[16px] font-normal tracking-tight">{value}</span>
     </button>
+  );
+}
+
+function FacebookLoveIcon({ active }: { active?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`h-[22px] w-[22px] ${active ? 'text-[#ff4d67]' : 'text-[#65676b]'}`} fill="none" aria-hidden="true">
+      <path
+        d="M12 20.3 4.9 13.5A4.6 4.6 0 0 1 11.4 7l.6.6.6-.6a4.6 4.6 0 0 1 6.5 6.5L12 20.3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={active ? 'currentColor' : 'none'}
+      />
+    </svg>
+  );
+}
+
+function FacebookCommentIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[22px] w-[22px] text-[#65676b]" fill="none" aria-hidden="true">
+      <path
+        d="M20 11.2c0 4-3.6 7.2-8 7.2-1 0-2-.2-2.9-.5L5 20l1.1-3.5A6.8 6.8 0 0 1 4 11.2C4 7.2 7.6 4 12 4s8 3.2 8 7.2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FacebookShareIcon({ className = 'h-[22px] w-[22px]' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`${className} text-[#65676b]`} fill="none" aria-hidden="true">
+      <path
+        d="M14.2 5.2 20 10l-5.8 4.8"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19.4 10H10a5 5 0 0 0-5 5v2.4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -597,6 +648,24 @@ function formatNum(num: number) {
     return (num / 1000).toFixed(1) + 'mii';
   }
   return num.toString();
+}
+
+function getDominantReaction(post: Post, likeCount: number, isLiked: boolean) {
+  const total = Math.max(1, likeCount + (isLiked ? 1 : 0));
+  const seed = Array.from(post.id).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const variants = [
+    { key: 'love', emoji: '❤️', label: 'Ador', ratio: 0.46 + (seed % 7) * 0.015 },
+    { key: 'laugh', emoji: '😂', label: 'Haha', ratio: 0.24 + (seed % 5) * 0.01 },
+    { key: 'angry', emoji: '😡', label: 'Furios', ratio: 0.14 + (seed % 3) * 0.01 },
+  ];
+
+  const normalized = variants.map((reaction, index) => {
+    const remainderPenalty = index === 0 ? 0 : variants.slice(0, index).reduce((sum, item) => sum + item.ratio, 0) * 0.08;
+    const count = Math.max(1, Math.round(total * Math.max(0.1, reaction.ratio - remainderPenalty)));
+    return { ...reaction, count };
+  });
+
+  return normalized.sort((a, b) => b.count - a.count)[0];
 }
 
 function ActionSheet({

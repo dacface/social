@@ -64,6 +64,7 @@ export default function MarketplaceView() {
   const [selectedCategory, setSelectedCategory] = useState('Toate');
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeDetailId, setActiveDetailId] = useState<string | null>(null);
 
   const visibleItems = useMemo(() => {
     return INITIAL_ITEMS.filter((item) => {
@@ -74,6 +75,7 @@ export default function MarketplaceView() {
   }, [query, selectedCategory]);
 
   const activeConversationItem = INITIAL_ITEMS.find((item) => item.id === activeConversationId) ?? null;
+  const activeDetailItem = INITIAL_ITEMS.find((item) => item.id === activeDetailId) ?? null;
 
   return (
     <div className="min-h-screen bg-[#F0F2F5]">
@@ -158,7 +160,10 @@ export default function MarketplaceView() {
                   >
                     Trimite mesaj
                   </button>
-                  <button className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]">
+                  <button
+                    onClick={() => setActiveDetailId(item.id)}
+                    className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]"
+                  >
                     Vezi detalii
                   </button>
                 </div>
@@ -200,6 +205,45 @@ export default function MarketplaceView() {
                 className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white"
               >
                 Trimite
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {activeDetailItem ? (
+        <div className="fixed inset-0 z-[88] bg-black/40 backdrop-blur-sm" onClick={() => setActiveDetailId(null)}>
+          <div
+            className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white px-4 pb-6 pt-4 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
+            <div className="text-[20px] font-bold text-[#050505]">{activeDetailItem.title}</div>
+            <div className="mt-1 text-[16px] font-semibold text-[#1877F2]">{activeDetailItem.price}</div>
+            <div className="mt-4 space-y-2 text-[14px] text-[#65676b]">
+              <div>Vândut de {activeDetailItem.seller}</div>
+              <div>Locație: {activeDetailItem.location}</div>
+              <div>Categorie: {activeDetailItem.category}</div>
+              <div>Publicat: {activeDetailItem.postedAt}</div>
+            </div>
+            <p className="mt-4 rounded-2xl bg-[#F7F8FA] px-4 py-4 text-[15px] text-[#050505]">
+              Articol în stare foarte bună, cu prezentare orientată pe viteza de răspuns și contact rapid, similar cu cardurile detaliate din Facebook Marketplace.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setActiveDetailId(null);
+                  setActiveConversationId(activeDetailItem.id);
+                }}
+                className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white"
+              >
+                Contactează vânzătorul
+              </button>
+              <button
+                onClick={() => setActiveDetailId(null)}
+                className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]"
+              >
+                Închide
               </button>
             </div>
           </div>

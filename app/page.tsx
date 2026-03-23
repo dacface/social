@@ -16,6 +16,9 @@ import StoryViewer from '@/components/StoryViewer';
 import MarketplaceView from '@/components/MarketplaceView';
 import EventsView from '@/components/EventsView';
 import SavedView from '@/components/SavedView';
+import GroupsView from '@/components/GroupsView';
+import PagesView from '@/components/PagesView';
+import MessagesView from '@/components/MessagesView';
 import type { StoryRecord } from '@/lib/stories';
 
 
@@ -30,7 +33,7 @@ export default function Feed() {
   const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [activeUtilityPanel, setActiveUtilityPanel] = useState<null | 'menu' | 'search' | 'messages'>(null);
-  const [activeShortcutView, setActiveShortcutView] = useState<null | 'saved' | 'marketplace' | 'events'>(null);
+  const [activeShortcutView, setActiveShortcutView] = useState<null | 'saved' | 'marketplace' | 'events' | 'groups' | 'pages' | 'messages'>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingReels, setLoadingReels] = useState(true);
@@ -177,6 +180,12 @@ export default function Feed() {
           <MarketplaceView />
         ) : activeShortcutView === 'events' ? (
           <EventsView />
+        ) : activeShortcutView === 'groups' ? (
+          <GroupsView />
+        ) : activeShortcutView === 'pages' ? (
+          <PagesView />
+        ) : activeShortcutView === 'messages' ? (
+          <MessagesView />
         ) : activeNav === 'profile' ? (
           <ProfileView />
         ) : activeNav === 'reels' ? (
@@ -202,7 +211,14 @@ export default function Feed() {
                 <div className="flex items-center gap-2">
                   <IconButton icon={<Plus className="w-[22px] h-[22px]" />} onClick={openPrimaryComposer} />
                   <IconButton icon={<Search className="w-[22px] h-[22px]" />} onClick={() => setActiveUtilityPanel('search')} />
-                  <IconButton icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />} badge="2" onClick={() => setActiveUtilityPanel('messages')} />
+                  <IconButton
+                    icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />}
+                    badge="2"
+                    onClick={() => {
+                      setActiveUtilityPanel(null);
+                      setActiveShortcutView('messages');
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -299,6 +315,20 @@ export default function Feed() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onMenuAction={handleMenuAction}
+          onOpenProfile={() => {
+            setActiveUtilityPanel(null);
+            setActiveShortcutView(null);
+            setActiveNav('profile');
+          }}
+          onOpenReels={() => {
+            setActiveUtilityPanel(null);
+            setActiveShortcutView(null);
+            setActiveNav('reels');
+          }}
+          onOpenShortcutView={(view) => {
+            setActiveUtilityPanel(null);
+            setActiveShortcutView(view);
+          }}
           onClose={() => setActiveUtilityPanel(null)}
         />
         {utilityToast ? (
@@ -362,17 +392,49 @@ function UtilityPanel({
   searchQuery,
   onSearchChange,
   onMenuAction,
+  onOpenProfile,
+  onOpenReels,
+  onOpenShortcutView,
   onClose,
 }: {
   kind: null | 'menu' | 'search' | 'messages';
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onMenuAction: (action: 'saved' | 'stories' | 'marketplace' | 'events') => void;
+  onOpenProfile: () => void;
+  onOpenReels: () => void;
+  onOpenShortcutView: (view: 'saved' | 'marketplace' | 'events' | 'groups' | 'pages' | 'messages') => void;
   onClose: () => void;
 }) {
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [messageDraft, setMessageDraft] = useState('');
+
   if (!kind) {
     return null;
   }
+
+  const messageThreads = [
+    { id: 'thread-alexandra', name: 'Alexandra Rus', preview: 'Ți-a trimis un răspuns la discuția despre fact-checking.' },
+    { id: 'thread-dacface', name: 'Echipa Dacface', preview: 'Funcția de mesagerie completă este în curs de extindere.' },
+  ];
+
+  const searchDestinations = [
+    { id: 'search-profile', label: 'Profilul tău', description: 'Deschide profilul', onClick: onOpenProfile },
+    { id: 'search-marketplace', label: 'Marketplace', description: 'Vezi anunțuri locale', onClick: () => onOpenShortcutView('marketplace') },
+    { id: 'search-events', label: 'Evenimente', description: 'Descoperă evenimente', onClick: () => onOpenShortcutView('events') },
+    { id: 'search-saved', label: 'Salvate', description: 'Colecțiile tale', onClick: () => onOpenShortcutView('saved') },
+    { id: 'search-groups', label: 'Grupuri', description: 'Intră în comunități tematice', onClick: () => onOpenShortcutView('groups') },
+    { id: 'search-pages', label: 'Pagini', description: 'Vezi pagini și branduri', onClick: () => onOpenShortcutView('pages') },
+    { id: 'search-messages', label: 'Mesaje', description: 'Deschide inbox-ul complet', onClick: () => onOpenShortcutView('messages') },
+    { id: 'search-reels', label: 'Reels', description: 'Deschide fluxul vertical', onClick: onOpenReels },
+  ].filter((item) => {
+    if (!searchQuery.trim()) {
+      return true;
+    }
+
+    const haystack = `${item.label} ${item.description}`.toLowerCase();
+    return haystack.includes(searchQuery.trim().toLowerCase());
+  });
 
   return (
     <div className="fixed inset-0 z-[85] bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -402,6 +464,18 @@ function UtilityPanel({
                 {item.label}
               </button>
             ))}
+            <button
+              onClick={() => onOpenShortcutView('groups')}
+              className="rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-5 text-left text-[15px] font-semibold text-[#050505] hover:bg-[#EEF1F5]"
+            >
+              Grupuri
+            </button>
+            <button
+              onClick={() => onOpenShortcutView('pages')}
+              className="rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-5 text-left text-[15px] font-semibold text-[#050505] hover:bg-[#EEF1F5]"
+            >
+              Pagini
+            </button>
           </div>
         ) : null}
 
@@ -413,22 +487,71 @@ function UtilityPanel({
               placeholder="Caută persoane, postări sau subiecte"
               className="w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-3 text-[15px] text-[#050505] outline-none"
             />
-            <div className="mt-4 text-[14px] text-[#65676b]">
-              {searchQuery.trim() ? `Rezultatele pentru "${searchQuery}" vor fi disponibile în curând.` : 'Începe să tastezi pentru a căuta în platformă.'}
+            <div className="mt-4 space-y-2">
+              {searchDestinations.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={item.onClick}
+                  className="w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-4 text-left hover:bg-[#EEF1F5]"
+                >
+                  <div className="text-[15px] font-semibold text-[#050505]">{item.label}</div>
+                  <div className="mt-1 text-[13px] text-[#65676b]">{item.description}</div>
+                </button>
+              ))}
+              {searchDestinations.length === 0 ? (
+                <div className="rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-4 text-[14px] text-[#65676b]">
+                  Nu am găsit nimic pentru căutarea asta.
+                </div>
+              ) : null}
             </div>
           </div>
         ) : null}
 
         {kind === 'messages' ? (
           <div className="p-4">
-            <div className="rounded-2xl border border-gray-200 bg-[#F7F8FA] p-4">
-              <div className="text-[15px] font-semibold text-[#050505]">Alexandra Rus</div>
-              <div className="mt-1 text-[14px] text-[#65676b]">Ți-a trimis un răspuns la discuția despre fact-checking.</div>
+            <div className="space-y-3">
+              {messageThreads.map((thread) => (
+                <button
+                  key={thread.id}
+                  onClick={() => {
+                    setActiveThreadId(thread.id);
+                    setMessageDraft('');
+                  }}
+                  className={`w-full rounded-2xl border p-4 text-left ${
+                    activeThreadId === thread.id ? 'border-[#1877F2] bg-[#E7F3FF]' : 'border-gray-200 bg-[#F7F8FA]'
+                  }`}
+                >
+                  <div className="text-[15px] font-semibold text-[#050505]">{thread.name}</div>
+                  <div className="mt-1 text-[14px] text-[#65676b]">{thread.preview}</div>
+                </button>
+              ))}
             </div>
-            <div className="mt-3 rounded-2xl border border-gray-200 bg-[#F7F8FA] p-4">
-              <div className="text-[15px] font-semibold text-[#050505]">Echipa Dacface</div>
-              <div className="mt-1 text-[14px] text-[#65676b]">Funcția de mesagerie completă este în curs de extindere.</div>
-            </div>
+
+            {activeThreadId ? (
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+                <div className="text-[15px] font-semibold text-[#050505]">
+                  Scrie către {messageThreads.find((thread) => thread.id === activeThreadId)?.name}
+                </div>
+                <textarea
+                  value={messageDraft}
+                  onChange={(event) => setMessageDraft(event.target.value)}
+                  placeholder="Trimite un mesaj rapid"
+                  className="mt-3 min-h-[120px] w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-3 text-[15px] outline-none"
+                />
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => {
+                      setMessageDraft('');
+                      onClose();
+                    }}
+                    disabled={!messageDraft.trim()}
+                    className="rounded-xl bg-[#1877F2] px-4 py-2 text-[14px] font-semibold text-white disabled:bg-[#B9D4FB]"
+                  >
+                    Trimite
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
