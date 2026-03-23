@@ -75,14 +75,10 @@ export default function ReelsView({ reels, loading, error, onCreateReel }: Reels
   }
 
   return (
-    <section className="bg-[#07090d] px-3 py-3">
-      <div className="mb-3 flex items-center justify-between rounded-[24px] border border-white/10 bg-white/5 px-4 py-3 text-white">
+    <section className="bg-[#07090d] text-white">
+      <div className="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[#07090d]/92 px-4 py-3 backdrop-blur-sm">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Reels</div>
-          <div className="mt-1 text-sm text-white/80">
-            Scroll vertical, clipuri fullscreen, acțiuni rapide.
-            {!soundEnabled ? ' Atinge un Reel pentru sunet.' : ' Sunet activat când browserul permite autoplay audio.'}
-          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -99,7 +95,7 @@ export default function ReelsView({ reels, loading, error, onCreateReel }: Reels
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="no-scrollbar h-[calc(100vh-124px)] snap-y snap-mandatory overflow-y-auto">
         {reels.map((reel) => (
           <ReelCard key={reel.id} reel={reel} soundEnabled={soundEnabled} onEnableSound={handleEnableSound} />
         ))}
@@ -119,8 +115,10 @@ function ReelCard({
 }) {
   const [isLiked, setIsLiked] = useState(false);
   const [isActive, setIsActive] = useState(false);
+  const [showControls, setShowControls] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardRef = useRef<HTMLElement>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const element = cardRef.current;
@@ -146,6 +144,14 @@ function ReelCard({
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
 
     if (!video) {
@@ -162,6 +168,16 @@ function ReelCard({
 
     video.pause();
   }, [isActive]);
+
+  const scheduleControlsHide = () => {
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 2200);
+  };
 
   const handleEnableSound = () => {
     const video = videoRef.current;
@@ -194,19 +210,41 @@ function ReelCard({
     video.muted = true;
   };
 
+  const handleVideoClick = () => {
+    const video = videoRef.current;
+
+    setShowControls(true);
+    scheduleControlsHide();
+
+    if (!video) {
+      return;
+    }
+
+    if (video.paused) {
+      void video.play().catch(() => {
+        // Ignore playback interruption after explicit user gesture.
+      });
+      return;
+    }
+
+    video.pause();
+  };
+
   return (
-    <article ref={cardRef} className="relative overflow-hidden rounded-[34px] border border-white/10 bg-black text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-      <div className="relative">
+    <article ref={cardRef} className="snap-start">
+      <div className="relative min-h-[calc(100vh-124px)] w-full bg-black">
+        <div className="relative h-[calc(100vh-124px)] w-full overflow-hidden bg-black text-white">
         <video
           ref={videoRef}
           src={reel.videoUrl}
-          className="aspect-[9/16] w-full bg-black object-cover"
-          controls
+          className="h-full w-full bg-black object-cover"
+          controls={showControls}
           muted
           loop
           playsInline
           preload="metadata"
           autoPlay
+          onClick={handleVideoClick}
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/85" />
 
@@ -255,6 +293,7 @@ function ReelCard({
             <ReelAction icon={<MessageCircle className="h-6 w-6" />} label={reel.comments} />
             <ReelAction icon={<Send className="h-6 w-6" />} label={reel.shares} />
           </div>
+        </div>
         </div>
       </div>
     </article>

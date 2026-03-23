@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   MoreHorizontal, X, Globe2, ThumbsUp, MessageCircle, Share, 
   MessageSquare, Camera, Smile, Send, Scale, Sparkles
 } from 'lucide-react';
 import DezbatereModal from './DezbatereModal';
 import AiAnalysisModal from './AiAnalysisModal';
+
+const HOME_REELS_SOUND_KEY = 'home-reels-sound-enabled';
+const HOME_REELS_SOUND_EVENT = 'home-reels-sound-changed';
 
 export interface Post {
   id: string;
@@ -37,10 +40,114 @@ export default function FeedPost({ post }: FeedPostProps) {
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [likeCount, setLikeCount] = useState<number>(post.likes);
   const [commentText, setCommentText] = useState('');
+  const [showVideoControls, setShowVideoControls] = useState(false);
+  const [isVideoActive, setIsVideoActive] = useState(false);
+  const [homeReelsSoundEnabled, setHomeReelsSoundEnabled] = useState(false);
+  const articleRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   // Modals state
   const [isDezbatereOpen, setIsDezbatereOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const syncSoundPreference = () => {
+      setHomeReelsSoundEnabled(window.localStorage.getItem(HOME_REELS_SOUND_KEY) === 'true');
+    };
+
+    syncSoundPreference();
+    window.addEventListener(HOME_REELS_SOUND_EVENT, syncSoundPreference);
+
+    return () => {
+      window.removeEventListener(HOME_REELS_SOUND_EVENT, syncSoundPreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!post.videoUrl) {
+      return;
+    }
+
+    const element = articleRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVideoActive(entry.isIntersecting && entry.intersectionRatio >= 0.6);
+      },
+      {
+        threshold: [0.25, 0.6, 0.85],
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [post.videoUrl]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video || !post.videoUrl) {
+      return;
+    }
+
+    if (isVideoActive) {
+      video.muted = !homeReelsSoundEnabled;
+      void video.play().catch(() => {
+        // Ignore autoplay interruption in preview mode.
+      });
+      return;
+    }
+
+    video.pause();
+  }, [homeReelsSoundEnabled, isVideoActive, post.videoUrl]);
+
+  const handleEnableHomeReelSound = () => {
+    setHomeReelsSoundEnabled(true);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(HOME_REELS_SOUND_KEY, 'true');
+      window.dispatchEvent(new Event(HOME_REELS_SOUND_EVENT));
+    }
+
+    const video = videoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    video.muted = false;
+    void video.play().catch(() => {
+      // Ignore playback interruption after explicit user gesture.
+    });
+  };
+
+  const handleDisableHomeReelSound = () => {
+    setHomeReelsSoundEnabled(false);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(HOME_REELS_SOUND_KEY, 'false');
+      window.dispatchEvent(new Event(HOME_REELS_SOUND_EVENT));
+    }
+
+    const video = videoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    video.muted = true;
+  };
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -68,7 +175,7 @@ export default function FeedPost({ post }: FeedPostProps) {
 
   return (
     <>
-      <article className="w-full bg-white relative pb-1">
+      <article ref={articleRef} className="w-full bg-white relative pb-1">
         
         {/* HEADER */}
         <div className="flex items-start justify-between px-4 pt-3 pb-2">
@@ -116,15 +223,27 @@ export default function FeedPost({ post }: FeedPostProps) {
 
         {/* MEDIA */}
         {post.videoUrl ? (
-          <div className="w-full bg-gray-100">
+          <div className="w-full bg-black">
+            <div className="relative h-[min(78vh,720px)] w-full overflow-hidden bg-black">
             <video
+              ref={videoRef}
               src={post.videoUrl}
-              className="w-full h-auto object-cover"
-              controls
+              className="h-full w-full object-cover object-center"
+              controls={showVideoControls}
+              muted={!homeReelsSoundEnabled}
+              autoPlay
               loop
               playsInline
               preload="metadata"
+              onClick={() => setShowVideoControls((value) => !value)}
             />
+              <button
+                onClick={homeReelsSoundEnabled ? handleDisableHomeReelSound : handleEnableHomeReelSound}
+                className="absolute right-3 top-3 rounded-full bg-black/55 px-4 py-2 text-xs font-bold text-white backdrop-blur-sm"
+              >
+                {homeReelsSoundEnabled ? 'Sunet activ' : 'Activează sunetul'}
+              </button>
+            </div>
           </div>
         ) : post.imageUrl ? (
           <div className="w-full bg-gray-100">
