@@ -83,10 +83,26 @@ export const db = getFirestore(firebaseAdminApp);
 export const auth = getAuth(firebaseAdminApp);
 export const storage = getStorage(firebaseAdminApp);
 
-export function getAdminStorageBucket() {
-  const bucketName = storageBucketName ?? firebaseAdminApp.options.storageBucket;
+function getStorageBucketCandidates() {
+  const configuredBucket = storageBucketName ?? firebaseAdminApp.options.storageBucket;
+  const candidates = new Set<string>();
 
-  if (!bucketName) {
+  if (typeof configuredBucket === 'string' && configuredBucket.trim()) {
+    candidates.add(configuredBucket.trim());
+  }
+
+  if (projectId) {
+    candidates.add(`${projectId}.appspot.com`);
+    candidates.add(`${projectId}.firebasestorage.app`);
+  }
+
+  return Array.from(candidates);
+}
+
+export function getAdminStorageBucket(bucketName?: string) {
+  const resolvedBucketName = bucketName ?? getStorageBucketCandidates()[0];
+
+  if (!resolvedBucketName) {
     const error = new Error(
       'Firebase Storage bucket is not configured. Set FIREBASE_STORAGE_BUCKET or NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET.'
     );
@@ -95,5 +111,9 @@ export function getAdminStorageBucket() {
     throw error;
   }
 
-  return storage.bucket(bucketName);
+  return storage.bucket(resolvedBucketName);
+}
+
+export function getAdminStorageBucketCandidates() {
+  return getStorageBucketCandidates().map((bucketName) => storage.bucket(bucketName));
 }

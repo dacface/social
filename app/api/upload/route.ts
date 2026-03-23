@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 
 import { NextResponse } from 'next/server';
 
-import { getAdminStorageBucket } from '@/lib/firebase-admin';
+import { getAdminStorageBucketCandidates } from '@/lib/firebase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,26 +25,46 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Image must be between 1 byte and 10 MB' }, { status: 400 });
     }
 
-    const bucket = getAdminStorageBucket();
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
     const objectPath = `posts/${Date.now()}-${randomUUID()}-${safeName}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    const bucketFile = bucket.file(objectPath);
     const downloadToken = randomUUID();
+    const bucketErrors: string[] = [];
+    let uploadedBucketName: string | null = null;
 
-    await bucketFile.save(buffer, {
-      resumable: false,
-      metadata: {
-        contentType: file.type,
-        cacheControl: 'public, max-age=31536000, immutable',
-        metadata: {
-          firebaseStorageDownloadTokens: downloadToken,
-        },
-      },
-    });
-    const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(objectPath)}?alt=media&token=${downloadToken}`;
+    for (const bucket of getAdminStorageBucketCandidates()) {
+      try {
+        await bucket.file(objectPath).save(buffer, {
+          resumable: false,
+          metadata: {
+            contentType: file.type,
+            cacheControl: 'public, max-age=31536000, immutable',
+            metadata: {
+              firebaseStorageDownloadTokens: downloadToken,
+            },
+          },
+        });
+
+        uploadedBucketName = bucket.name;
+        break;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        bucketErrors.push(`${bucket.name}: ${message}`);
+        console.warn('[POST /api/upload] Upload failed for bucket candidate', {
+          bucket: bucket.name,
+          error: message,
+        });
+      }
+    }
+
+    if (!uploadedBucketName) {
+      throw new Error(bucketErrors.join(' | ') || 'No Firebase Storage bucket accepted the upload');
+    }
+
+    const url = `https://firebasestorage.googleapis.com/v0/b/${uploadedBucketName}/o/${encodeURIComponent(objectPath)}?alt=media&token=${downloadToken}`;
 
     console.log('[POST /api/upload] Uploaded image to Firebase Storage', {
+      bucket: uploadedBucketName,
       objectPath,
       size: file.size,
       type: file.type,
