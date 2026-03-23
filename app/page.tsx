@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Menu, Plus, Search, MessageCircle,
+  Menu, Plus, Search,
   Home, PlaySquare, Users, Bell, UserCircle2, X
 } from 'lucide-react';
 import FeedPost, { Post } from '@/components/FeedPost';
@@ -251,7 +251,7 @@ export default function Feed() {
                   <IconButton icon={<Plus className="w-[22px] h-[22px]" />} onClick={openPrimaryComposer} />
                   <IconButton icon={<Search className="w-[22px] h-[22px]" />} onClick={() => setActiveUtilityPanel('search')} />
                   <IconButton
-                    icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />}
+                    icon={<MessagesBubbleIcon />}
                     badge="2"
                     onClick={() => {
                       setActiveUtilityPanel(null);
@@ -434,6 +434,21 @@ function CreateMediaIcon() {
         strokeWidth="1.9"
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+function MessagesBubbleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.35" fill="#3498F4" />
+      <path
+        d="M12 7.2c-3.68 0-6.63 2.47-6.63 5.58 0 1.38.6 2.66 1.7 3.64l-.58 2.28 2.3-1.15c.96.33 2.04.51 3.2.51 3.67 0 6.62-2.47 6.62-5.58S15.67 7.2 12 7.2Z"
+        fill="#FFFFFF"
+      />
+      <circle cx="9.3" cy="12.7" r="0.98" fill="#3498F4" />
+      <circle cx="12" cy="12.7" r="0.98" fill="#3498F4" />
+      <circle cx="14.7" cy="12.7" r="0.98" fill="#3498F4" />
     </svg>
   );
 }
