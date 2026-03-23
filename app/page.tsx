@@ -241,7 +241,9 @@ export default function Feed() {
                   <button onClick={() => setActiveUtilityPanel('menu')} className="text-gray-900 group">
                     <Menu className="w-[26px] h-[26px] group-hover:bg-gray-100 rounded-sm" />
                   </button>
-                  <h1 className="text-[26px] font-bold text-[#1877F2] tracking-tighter ml-1 drop-shadow-sm font-['Inter',sans-serif]">dacface</h1>
+                  <h1 className="ml-1 text-[26px] font-[680] tracking-[-0.05em] text-[#1877F2]">
+                    dacface
+                  </h1>
                 </div>
 
                 {/* Right icons */}
