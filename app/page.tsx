@@ -400,7 +400,7 @@ export default function Feed() {
 
 function IconButton({ icon, badge, onClick }: { icon: React.ReactNode, badge?: string, onClick?: () => void }) {
   return (
-    <button onClick={onClick} className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors text-black">
+    <button onClick={onClick} className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-black transition-colors hover:bg-[#E8EBEF]">
       {icon}
       {badge && (
         <span className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-red-600 border-[2px] border-white text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none z-10">
@@ -424,7 +424,7 @@ function BottomNav({
 }) {
   return (
     <div
-      className={`fixed sm:static bottom-0 left-0 right-0 h-[60px] bg-white border-t border-gray-200 z-50 px-1 flex items-center justify-around pb-safe transition-transform duration-300 ease-out ${
+      className={`fixed sm:static bottom-0 left-0 right-0 z-50 flex h-[62px] items-center justify-around border-t border-[#E6E9EE] bg-white/96 px-1 pb-safe shadow-[0_-8px_24px_rgba(17,20,24,0.06)] backdrop-blur-md transition-transform duration-300 ease-out ${
         isHidden ? 'translate-y-full' : 'translate-y-0'
       }`}
     >
@@ -736,17 +736,17 @@ function NavButton({ id, icon: Icon, label, activeNav, setActiveNav, onNavigate,
         onNavigate();
         setActiveNav(id);
       }}
-      className="flex flex-col items-center justify-center w-[64px] h-full relative"
+      className="relative flex h-full w-[68px] flex-col items-center justify-center"
     >
-      <div className="relative mb-1">
-        <Icon className={`w-7 h-7 ${colorClass} ${fillClass}`} strokeWidth={isActive ? 2.5 : 2} />
+      <div className="relative mb-[3px]">
+        <Icon className={`h-[27px] w-[27px] ${colorClass} ${fillClass}`} strokeWidth={isActive ? 2.35 : 1.9} />
         {badge && (
           <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#E41E3F] rounded-full border-2 border-white flex items-center justify-center px-1">
             <span className="text-[10px] font-bold text-white leading-none">{badge}</span>
           </div>
         )}
       </div>
-      <span className={`text-[10px] font-medium tracking-wide ${colorClass}`}>
+      <span className={`text-[10px] font-[620] tracking-[-0.02em] ${colorClass}`}>
         {label}
       </span>
     </button>

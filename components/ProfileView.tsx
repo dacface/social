@@ -145,10 +145,10 @@ export default function ProfileView() {
 
         {/* Profile Info */}
         <div className="px-4 flex flex-col items-center pb-2 text-center">
-          <h1 className="text-[28px] font-bold text-[#050505] leading-tight flex items-center gap-1.5">
+          <h1 className="flex items-center gap-1.5 text-[29px] font-[700] tracking-[-0.045em] text-[#050505] leading-tight">
             {MOCK_USER.name}
           </h1>
-          <p className="text-[15px] text-[#050505] mt-2 mb-3 max-w-[90%] font-medium whitespace-pre-wrap">
+          <p className="mt-2 mb-3 max-w-[90%] whitespace-pre-wrap text-[15px] font-[460] tracking-[-0.015em] text-[#1b1f24] leading-[1.55]">
             {MOCK_USER.bio}
           </p>
 
@@ -178,9 +178,9 @@ export default function ProfileView() {
         <div className="px-4 py-3 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           <button 
             onClick={handleFollow}
-            className={`flex-1 min-w-[110px] flex items-center justify-center gap-1.5 py-2 rounded-lg font-semibold text-[14px] transition-colors shadow-sm
+            className={`flex min-w-[110px] flex-1 items-center justify-center gap-1.5 rounded-2xl px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] transition-all shadow-sm
               ${isFollowed 
-                ? 'bg-gray-200 text-[#050505] hover:bg-gray-300' 
+                ? 'bg-[#E9EDF2] text-[#050505] hover:bg-[#DDE3EA]' 
                 : 'bg-[#1877F2] text-white hover:bg-[#166FE5]'
               }`}
           >
@@ -193,7 +193,7 @@ export default function ProfileView() {
               setActiveTab('despre');
               setMessageStatus('');
             }}
-            className="flex-1 min-w-[90px] flex items-center justify-center gap-1.5 py-2 bg-gray-200 text-[#050505] rounded-lg font-semibold text-[14px] hover:bg-gray-300 transition-colors shadow-sm"
+            className="flex min-w-[90px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] transition-all hover:bg-[#DDE3EA] shadow-sm"
           >
             <MessageCircle className="w-4 h-4 text-gray-900" strokeWidth={2.5} />
             Mesaj
@@ -201,7 +201,7 @@ export default function ProfileView() {
 
           <button 
             onClick={() => setIsDezbatereOpen(true)}
-            className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 bg-gray-200 text-[#050505] rounded-lg font-semibold text-[14px] hover:bg-gray-300 transition-colors shadow-sm"
+            className="flex min-w-[100px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] transition-all hover:bg-[#DDE3EA] shadow-sm"
           >
             <Scale className="w-4 h-4 text-[#1877F2]" strokeWidth={2.5} />
             Dezbatere
@@ -209,7 +209,7 @@ export default function ProfileView() {
 
           <button 
             onClick={() => setIsAiOpen(true)}
-            className="flex-1 min-w-[90px] flex items-center justify-center gap-1.5 py-2 bg-gray-200 text-[#050505] rounded-lg font-semibold text-[14px] hover:bg-gray-300 transition-colors shadow-sm"
+            className="flex min-w-[90px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] transition-all hover:bg-[#DDE3EA] shadow-sm"
           >
             <Sparkles className="w-4 h-4 text-[#A855F7]" strokeWidth={2.5} />
             Analiză AI
@@ -240,7 +240,7 @@ export default function ProfileView() {
 
         {activeTab === 'despre' && (
           <div className="bg-white p-4">
-            <h2 className="text-[17px] font-bold text-[#050505] mb-4">Informații</h2>
+            <h2 className="mb-4 text-[19px] font-[680] tracking-[-0.035em] text-[#050505]">Informații</h2>
             <div className="flex flex-col gap-4">
               <InfoRow icon={<Briefcase />} text={`Lucrează la `} highlight={MOCK_USER.work} />
               <InfoRow icon={<MapPin />} text={`Locuiește în `} highlight={MOCK_USER.location} />
@@ -248,7 +248,7 @@ export default function ProfileView() {
               <InfoRow icon={<Calendar />} text={MOCK_USER.joinDate} />
             </div>
             <div className="mt-5 rounded-xl border border-gray-200 bg-[#F7F8FA] p-4">
-              <h3 className="text-[15px] font-bold text-[#050505]">Trimite un mesaj rapid</h3>
+              <h3 className="text-[15px] font-[660] tracking-[-0.025em] text-[#050505]">Trimite un mesaj rapid</h3>
               <textarea
                 value={messageDraft}
                 onChange={(event) => setMessageDraft(event.target.value)}
@@ -260,7 +260,7 @@ export default function ProfileView() {
                 <button
                   onClick={handleSendMessage}
                   disabled={!messageDraft.trim()}
-                  className="rounded-lg bg-[#1877F2] px-4 py-2 text-[14px] font-semibold text-white disabled:bg-[#b9d4fb]"
+                  className="rounded-2xl bg-[#1877F2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-white disabled:bg-[#b9d4fb]"
                 >
                   Trimite
                 </button>
@@ -348,10 +348,10 @@ function ProfileStatsSheet({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
-        <div className="text-[18px] font-bold text-[#050505]">{content.title}</div>
+        <div className="text-[19px] font-[680] tracking-[-0.035em] text-[#050505]">{content.title}</div>
         <div className="mt-4 space-y-2">
           {content.rows.map((row) => (
-            <div key={row} className="rounded-2xl bg-[#F7F8FA] px-4 py-3 text-[15px] font-semibold text-[#050505]">
+            <div key={row} className="rounded-2xl bg-[#F7F8FA] px-4 py-3 text-[15px] font-[620] tracking-[-0.02em] text-[#050505]">
               {row}
             </div>
           ))}
@@ -397,7 +397,7 @@ function TabButton({
   return (
     <button 
       onClick={() => set(id)}
-      className={`px-4 py-3 min-w-max font-semibold text-[15px] transition-colors relative
+      className={`relative min-w-max px-4 py-3 text-[15px] font-[640] tracking-[-0.02em] transition-colors
         ${isActive ? 'text-[#1877F2]' : 'text-[#65676b] hover:bg-gray-50 rounded-md'}
       `}
     >

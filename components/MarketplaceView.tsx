@@ -83,7 +83,7 @@ export default function MarketplaceView() {
         <div className="px-4 pb-4 pt-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[28px] font-bold tracking-tight text-[#050505]">Marketplace</div>
+              <div className="text-[29px] font-[700] tracking-[-0.045em] text-[#050505]">Marketplace</div>
               <div className="text-[14px] text-[#65676b]">Descoperă anunțuri locale, ca într-un feed dedicat.</div>
             </div>
             <div className="rounded-full bg-[#E7F3FF] p-3 text-[#1877F2]">
@@ -109,8 +109,8 @@ export default function MarketplaceView() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`rounded-full px-4 py-2 text-[14px] font-semibold transition-colors ${
-                    isActive ? 'bg-[#1877F2] text-white' : 'bg-[#E4E6EB] text-[#050505]'
+                  className={`rounded-full px-4 py-2 text-[14px] font-[630] tracking-[-0.02em] transition-colors ${
+                    isActive ? 'bg-[#1877F2] text-white' : 'bg-[#E9EDF2] text-[#050505]'
                   }`}
                 >
                   {category}
@@ -141,8 +141,8 @@ export default function MarketplaceView() {
               </div>
 
               <div className="p-4">
-                <div className="text-[20px] font-bold text-[#050505]">{item.price}</div>
-                <div className="mt-1 text-[16px] font-semibold text-[#050505]">{item.title}</div>
+                <div className="text-[21px] font-[690] tracking-[-0.035em] text-[#050505]">{item.price}</div>
+                <div className="mt-1 text-[16px] font-[630] tracking-[-0.02em] text-[#050505]">{item.title}</div>
                 <div className="mt-2 flex items-center gap-2 text-[14px] text-[#65676b]">
                   <MapPin className="h-4 w-4" />
                   <span>{item.location}</span>
@@ -156,13 +156,13 @@ export default function MarketplaceView() {
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setActiveConversationId(item.id)}
-                    className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white"
+                    className="rounded-2xl bg-[#1877F2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-white shadow-sm"
                   >
                     Trimite mesaj
                   </button>
                   <button
                     onClick={() => setActiveDetailId(item.id)}
-                    className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]"
+                    className="rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] shadow-sm"
                   >
                     Vezi detalii
                   </button>
@@ -174,7 +174,7 @@ export default function MarketplaceView() {
 
         {visibleItems.length === 0 ? (
           <div className="rounded-[24px] bg-white p-8 text-center shadow-sm">
-            <div className="text-[17px] font-bold text-[#050505]">Nu am găsit rezultate.</div>
+            <div className="text-[18px] font-[680] tracking-[-0.03em] text-[#050505]">Nu am găsit rezultate.</div>
             <div className="mt-1 text-[14px] text-[#65676b]">Încearcă altă categorie sau un termen mai simplu.</div>
           </div>
         ) : null}
@@ -187,7 +187,7 @@ export default function MarketplaceView() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
-            <div className="text-[18px] font-bold text-[#050505]">Mesaj către {activeConversationItem.seller}</div>
+            <div className="text-[19px] font-[680] tracking-[-0.035em] text-[#050505]">Mesaj către {activeConversationItem.seller}</div>
             <div className="mt-1 text-[14px] text-[#65676b]">Despre: {activeConversationItem.title}</div>
             <textarea
               defaultValue={`Bună! Mai este disponibil ${activeConversationItem.title}?`}
@@ -196,13 +196,13 @@ export default function MarketplaceView() {
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 onClick={() => setActiveConversationId(null)}
-                className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]"
+                className="rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505]"
               >
                 Închide
               </button>
               <button
                 onClick={() => setActiveConversationId(null)}
-                className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white"
+                className="rounded-2xl bg-[#1877F2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-white"
               >
                 Trimite
               </button>
@@ -218,8 +218,8 @@ export default function MarketplaceView() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
-            <div className="text-[20px] font-bold text-[#050505]">{activeDetailItem.title}</div>
-            <div className="mt-1 text-[16px] font-semibold text-[#1877F2]">{activeDetailItem.price}</div>
+            <div className="text-[22px] font-[690] tracking-[-0.04em] text-[#050505]">{activeDetailItem.title}</div>
+            <div className="mt-1 text-[16px] font-[650] tracking-[-0.025em] text-[#1877F2]">{activeDetailItem.price}</div>
             <div className="mt-4 space-y-2 text-[14px] text-[#65676b]">
               <div>Vândut de {activeDetailItem.seller}</div>
               <div>Locație: {activeDetailItem.location}</div>
@@ -235,13 +235,13 @@ export default function MarketplaceView() {
                   setActiveDetailId(null);
                   setActiveConversationId(activeDetailItem.id);
                 }}
-                className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white"
+                className="rounded-2xl bg-[#1877F2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-white"
               >
                 Contactează vânzătorul
               </button>
               <button
                 onClick={() => setActiveDetailId(null)}
-                className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]"
+                className="rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505]"
               >
                 Închide
               </button>

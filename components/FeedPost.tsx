@@ -343,7 +343,7 @@ export default function FeedPost({ post }: FeedPostProps) {
             />
             <div className="flex flex-col justify-center">
               <div className="flex items-center gap-1 leading-tight">
-                <span className="font-bold text-[15px] text-[#050505] tracking-tight">{post.authorName}</span>
+                <span className="text-[15px] font-[650] tracking-[-0.025em] text-[#050505]">{post.authorName}</span>
                 {post.isVerified && (
                   <VerifiedBadge />
                 )}
@@ -375,12 +375,12 @@ export default function FeedPost({ post }: FeedPostProps) {
 
         {/* TEXT CONTENT */}
         <div className="px-4 pb-3">
-          <p className="text-[15px] text-[#050505] leading-[1.35] whitespace-pre-wrap">
+          <p className="text-[15px] font-[450] tracking-[-0.015em] text-[#111418] leading-[1.5] whitespace-pre-wrap">
             {collapsedCaption}
             {post.hasMoreText && (
               <button
                 onClick={() => setIsFullTextExpanded((value) => !value)}
-                className="pl-1 text-[15px] font-semibold text-[#65676b] hover:underline"
+                className="pl-1 text-[15px] font-[620] tracking-[-0.02em] text-[#65676b] hover:underline"
               >
                 {isFullTextExpanded ? 'Vezi mai puțin' : 'Vezi mai mult'}
               </button>
@@ -494,7 +494,7 @@ export default function FeedPost({ post }: FeedPostProps) {
               className="flex-1 bg-transparent text-[#050505] text-[15px] placeholder-[#65676b] outline-none"
             />
             {commentAttachmentName ? (
-              <span className="rounded-full bg-white px-2 py-1 text-[12px] font-semibold text-[#1877F2]">
+              <span className="rounded-full bg-white px-2 py-1 text-[12px] font-[650] tracking-[-0.02em] text-[#1877F2]">
                 {commentAttachmentName}
               </span>
             ) : null}

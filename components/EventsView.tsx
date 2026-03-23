@@ -62,12 +62,12 @@ export default function EventsView() {
       <div className="sticky top-0 z-30 bg-white px-4 pb-4 pt-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[28px] font-bold tracking-tight text-[#050505]">Evenimente</div>
+            <div className="text-[29px] font-[700] tracking-[-0.045em] text-[#050505]">Evenimente</div>
             <div className="text-[14px] text-[#65676b]">Descoperă ce se întâmplă în jurul tău și răspunde rapid.</div>
           </div>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-[#1877F2] px-4 py-2 text-[14px] font-semibold text-white"
+            className="flex items-center gap-2 rounded-full bg-[#1877F2] px-4 py-2 text-[14px] font-[640] tracking-[-0.02em] text-white shadow-sm"
           >
             <Plus className="h-4 w-4" />
             Creează
@@ -87,7 +87,7 @@ export default function EventsView() {
               </div>
 
               <div className="p-4">
-                <div className="text-[19px] font-bold text-[#050505]">{event.title}</div>
+                <div className="text-[20px] font-[680] tracking-[-0.03em] text-[#050505]">{event.title}</div>
                 <div className="mt-3 space-y-2 text-[14px] text-[#65676b]">
                   <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4" />
@@ -110,16 +110,16 @@ export default function EventsView() {
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <button
                     onClick={() => toggleInterested(event.id)}
-                    className={`rounded-xl px-4 py-3 text-[15px] font-semibold ${
-                      isInterested ? 'bg-[#E7F3FF] text-[#1877F2]' : 'bg-[#E4E6EB] text-[#050505]'
+                    className={`rounded-2xl px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] shadow-sm ${
+                      isInterested ? 'bg-[#E7F3FF] text-[#1877F2]' : 'bg-[#E9EDF2] text-[#050505]'
                     }`}
                   >
                     {isInterested ? 'Interesat' : 'Mă interesează'}
                   </button>
                   <button
                     onClick={() => toggleGoing(event.id)}
-                    className={`rounded-xl px-4 py-3 text-[15px] font-semibold ${
-                      isGoing ? 'bg-[#1877F2] text-white' : 'bg-[#E4E6EB] text-[#050505]'
+                    className={`rounded-2xl px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] shadow-sm ${
+                      isGoing ? 'bg-[#1877F2] text-white' : 'bg-[#E9EDF2] text-[#050505]'
                     }`}
                   >
                     {isGoing ? 'Particip' : 'Voi participa'}
@@ -138,17 +138,17 @@ export default function EventsView() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
-            <div className="text-[18px] font-bold text-[#050505]">Creează eveniment</div>
+            <div className="text-[19px] font-[680] tracking-[-0.035em] text-[#050505]">Creează eveniment</div>
             <div className="mt-3 space-y-3">
               <input className="w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-3 text-[15px] outline-none" placeholder="Titlu eveniment" />
               <input className="w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-3 text-[15px] outline-none" placeholder="Locație" />
               <textarea className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-3 text-[15px] outline-none" placeholder="Descriere" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button onClick={() => setIsCreateOpen(false)} className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]">
+              <button onClick={() => setIsCreateOpen(false)} className="rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505]">
                 Renunță
               </button>
-              <button onClick={() => setIsCreateOpen(false)} className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white">
+              <button onClick={() => setIsCreateOpen(false)} className="rounded-2xl bg-[#1877F2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-white">
                 Publică
               </button>
             </div>
