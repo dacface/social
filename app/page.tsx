@@ -281,7 +281,7 @@ export default function Feed() {
             </div>
 
             {/* Thick Separator */}
-            <div className="w-full h-1.5 bg-[#c9ccd1]" />
+            <div className="w-full h-1 bg-[#c9ccd1]" />
 
             {/* Stories Section */}
             <StoriesBar
@@ -292,7 +292,7 @@ export default function Feed() {
             />
 
             {/* Thick Separator */}
-            <div className="w-full h-1.5 bg-[#c9ccd1]" />
+            <div className="w-full h-1 bg-[#c9ccd1]" />
 
             {/* FEED LOOP */}
             <div className="flex flex-col">
@@ -308,7 +308,7 @@ export default function Feed() {
                 posts.map((post) => (
                   <React.Fragment key={post.id}>
                     <FeedPost post={post} />
-                    <div className="w-full h-1.5 bg-[#c9ccd1]" />
+                    <div className="w-full h-1 bg-[#c9ccd1]" />
                   </React.Fragment>
                 ))
               ) : (
@@ -440,7 +440,7 @@ function CreateMediaIcon() {
 
 function MessagesBubbleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-[28px] w-[28px]" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9.35" fill="#3498F4" />
       <path
         d="M12 7.2c-3.68 0-6.63 2.47-6.63 5.58 0 1.38.6 2.66 1.7 3.64l-.58 2.28 2.3-1.15c.96.33 2.04.51 3.2.51 3.67 0 6.62-2.47 6.62-5.58S15.67 7.2 12 7.2Z"

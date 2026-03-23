@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { 
-  MoreHorizontal, X, Globe2,
+  MoreHorizontal, X,
   Camera, Smile, Send, Sparkles, Bookmark, Link2, Flag, ImagePlus
 } from 'lucide-react';
 import DezbatereModal from './DezbatereModal';
@@ -312,6 +312,7 @@ export default function FeedPost({ post }: FeedPostProps) {
       ? `${post.caption.slice(0, 180).trimEnd()}...`
       : post.caption;
   const hasMedia = Boolean(post.imageUrl || post.videoUrl);
+  const postMomentumLabel = getPostMomentumLabel(likeCount, commentCount, shareCount);
 
   if (isHidden) {
     return (
@@ -343,7 +344,7 @@ export default function FeedPost({ post }: FeedPostProps) {
             />
             <div className="flex flex-col justify-center">
               <div className="flex items-center gap-1 leading-tight">
-                <span className="font-bold text-[15px] text-[#050505] tracking-tight">{post.authorName}</span>
+                <span className="text-[15px] font-semibold text-[#1c1e21] tracking-[-0.01em]">{post.authorName}</span>
                 {post.isVerified && (
                   <VerifiedBadge />
                 )}
@@ -351,7 +352,8 @@ export default function FeedPost({ post }: FeedPostProps) {
               <div className="flex items-center gap-1 mt-0.5 text-[13px] text-[#65676b] leading-none">
                 <span className="hover:underline cursor-pointer">{post.time}</span>
                 <span>·</span>
-                <Globe2 className="w-3 h-3 fill-current" />
+                <EarthStatusIcon />
+                <span>{postMomentumLabel}</span>
               </div>
             </div>
           </div>
@@ -585,6 +587,20 @@ export default function FeedPost({ post }: FeedPostProps) {
   );
 }
 
+function getPostMomentumLabel(likes: number, comments: number, shares: number) {
+  const score = likes + comments * 3 + shares * 5;
+
+  if (score >= 220) {
+    return 'Postare virală';
+  }
+
+  if (score >= 90) {
+    return 'Postare în ascensiune';
+  }
+
+  return 'Postare recentă';
+}
+
 function InlineStatButton({
   icon,
   value,
@@ -609,6 +625,31 @@ function InlineStatButton({
       {icon}
       {hideValue ? null : <span className="text-[16px] font-normal tracking-tight">{value}</span>}
     </button>
+  );
+}
+
+function EarthStatusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[13px] w-[13px]" fill="none" aria-hidden="true">
+      <path
+        d="M12 2.8c5.08 0 9.2 4.12 9.2 9.2 0 5.08-4.12 9.2-9.2 9.2-5.08 0-9.2-4.12-9.2-9.2 0-5.08 4.12-9.2 9.2-9.2Z"
+        stroke="#2F9BF2"
+        strokeWidth="1.15"
+      />
+      <path
+        d="M12 2.8c2.12 0 3.83 4.12 3.83 9.2s-1.71 9.2-3.83 9.2-3.83-4.12-3.83-9.2S9.88 2.8 12 2.8Z"
+        stroke="#2F9BF2"
+        strokeWidth="1.1"
+      />
+      <path
+        d="M12 2.8c3.55 0 6.43 4.12 6.43 9.2S15.55 21.2 12 21.2 5.57 17.08 5.57 12 8.45 2.8 12 2.8Z"
+        stroke="#2F9BF2"
+        strokeWidth="1.1"
+      />
+      <path d="M2.8 12h18.4" stroke="#2F9BF2" strokeWidth="1.1" />
+      <path d="M4.3 7.35c2.22 1.08 4.9 1.65 7.7 1.65 2.8 0 5.48-.57 7.7-1.65" stroke="#2F9BF2" strokeWidth="1.1" />
+      <path d="M4.3 16.65C6.52 15.57 9.2 15 12 15c2.8 0 5.48.57 7.7 1.65" stroke="#2F9BF2" strokeWidth="1.1" />
+    </svg>
   );
 }
 
