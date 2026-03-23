@@ -30,19 +30,19 @@ export async function POST(req: Request) {
     const objectPath = `posts/${Date.now()}-${randomUUID()}-${safeName}`;
     const buffer = Buffer.from(await file.arrayBuffer());
     const bucketFile = bucket.file(objectPath);
+    const downloadToken = randomUUID();
 
     await bucketFile.save(buffer, {
       resumable: false,
       metadata: {
         contentType: file.type,
         cacheControl: 'public, max-age=31536000, immutable',
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken,
+        },
       },
     });
-
-    const [url] = await bucketFile.getSignedUrl({
-      action: 'read',
-      expires: '03-23-2036',
-    });
+    const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(objectPath)}?alt=media&token=${downloadToken}`;
 
     console.log('[POST /api/upload] Uploaded image to Firebase Storage', {
       objectPath,
@@ -53,6 +53,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, url }, { status: 201 });
   } catch (error) {
     console.error('[POST /api/upload] Failed to upload image', error);
-    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error && process.env.NODE_ENV !== 'production'
+            ? `Failed to upload image: ${error.message}`
+            : 'Failed to upload image',
+      },
+      { status: 500 }
+    );
   }
 }
