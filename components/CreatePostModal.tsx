@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { X, ImagePlus, Globe2, Users, ChevronDown, Loader2, MapPin, Hash } from 'lucide-react';
+
+import { clientStorage } from '@/lib/firebase';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -60,11 +63,18 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
       let imageUrl = '';
 
       if (imageFile) {
-        if (!imagePreview?.startsWith('data:image/')) {
-          throw new Error('Imaginea selectată nu a putut fi pregătită pentru publicare.');
-        }
+        try {
+          const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+          const storageRef = ref(clientStorage, `posts/${Date.now()}-${safeName}`);
+          const snapshot = await uploadBytes(storageRef, imageFile, {
+            contentType: imageFile.type || 'application/octet-stream',
+          });
 
-        imageUrl = imagePreview;
+          imageUrl = await getDownloadURL(snapshot.ref);
+        } catch (uploadError) {
+          console.error('[CreatePost] Client Storage upload failed', uploadError);
+          throw new Error(getFirebaseStorageErrorMessage(uploadError));
+        }
       }
 
       console.log('[CreatePost] Creating Firestore post', {
@@ -238,4 +248,27 @@ function getApiErrorMessage(payload: unknown, fallback: string) {
   }
 
   return fallback;
+}
+
+function getFirebaseStorageErrorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'code' in error && typeof error.code === 'string') {
+    switch (error.code) {
+      case 'storage/unauthorized':
+        return 'Nu există permisiuni pentru încărcarea imaginilor în Firebase Storage.';
+      case 'storage/canceled':
+        return 'Încărcarea imaginii a fost anulată.';
+      case 'storage/quota-exceeded':
+        return 'Spațiul Firebase Storage a depășit limita disponibilă.';
+      case 'storage/retry-limit-exceeded':
+        return 'Încărcarea imaginii a expirat. Încearcă din nou.';
+      default:
+        break;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return `Imaginea nu a putut fi încărcată: ${error.message}`;
+  }
+
+  return 'Imaginea nu a putut fi încărcată.';
 }
