@@ -331,7 +331,7 @@ export default function FeedPost({ post }: FeedPostProps) {
 
   return (
     <>
-      <article ref={articleRef} className="w-full bg-white relative pb-1">
+      <article ref={articleRef} className="w-full bg-white relative">
         
         {/* HEADER */}
         <div className="flex items-start justify-between px-4 pt-3 pb-2">

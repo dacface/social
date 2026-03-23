@@ -41,6 +41,7 @@ export default function Feed() {
   const [feedError, setFeedError] = useState('');
   const [reelsError, setReelsError] = useState('');
   const [utilityToast, setUtilityToast] = useState('');
+  const [isChromeHidden, setIsChromeHidden] = useState(false);
 
   const handlePostCreated = (newPost: Post) => {
     setFeedError('');
@@ -153,6 +154,38 @@ export default function Feed() {
     };
   }, [utilityToast]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY;
+
+      if (currentScrollY <= 24) {
+        setIsChromeHidden(false);
+        lastScrollY = currentScrollY;
+        return;
+      }
+
+      if (Math.abs(delta) < 8) {
+        return;
+      }
+
+      setIsChromeHidden(delta > 0);
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const handleMenuAction = (action: 'saved' | 'stories' | 'marketplace' | 'events') => {
     if (action === 'stories') {
       setActiveUtilityPanel(null);
@@ -197,7 +230,11 @@ export default function Feed() {
         ) : (
           <>
             {/* Top Navigation */}
-            <div className="sticky top-0 z-40 bg-white">
+            <div
+              className={`sticky top-0 z-40 overflow-hidden bg-white transition-[max-height,transform,opacity] duration-300 ease-out ${
+                isChromeHidden ? 'pointer-events-none max-h-0 -translate-y-full opacity-0' : 'max-h-24 translate-y-0 opacity-100'
+              }`}
+            >
               <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
                 {/* Left elements */}
                 <div className="flex items-center gap-3">
@@ -242,7 +279,7 @@ export default function Feed() {
             </div>
 
             {/* Thick Separator */}
-            <div className="w-full h-2 bg-[#c9ccd1]" />
+            <div className="w-full h-1.5 bg-[#c9ccd1]" />
 
             {/* Stories Section */}
             <StoriesBar
@@ -253,7 +290,7 @@ export default function Feed() {
             />
 
             {/* Thick Separator */}
-            <div className="w-full h-2 bg-[#c9ccd1]" />
+            <div className="w-full h-1.5 bg-[#c9ccd1]" />
 
             {/* FEED LOOP */}
             <div className="flex flex-col">
@@ -269,7 +306,7 @@ export default function Feed() {
                 posts.map((post) => (
                   <React.Fragment key={post.id}>
                     <FeedPost post={post} />
-                    <div className="w-full h-2 bg-[#c9ccd1]" />
+                    <div className="w-full h-1.5 bg-[#c9ccd1]" />
                   </React.Fragment>
                 ))
               ) : (
@@ -283,7 +320,12 @@ export default function Feed() {
         )}
 
         {/* BOTTOM NAV BAR */}
-        <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={() => setActiveShortcutView(null)} />
+        <BottomNav
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          onNavigate={() => setActiveShortcutView(null)}
+          isHidden={isChromeHidden}
+        />
 
         {/* CREATE POST MODAL */}
         <CreatePostModal 
@@ -371,13 +413,19 @@ function BottomNav({
   activeNav,
   setActiveNav,
   onNavigate,
+  isHidden,
 }: {
   activeNav: string;
   setActiveNav: (s: string) => void;
   onNavigate: () => void;
+  isHidden?: boolean;
 }) {
   return (
-    <div className="fixed sm:static bottom-0 left-0 right-0 h-[60px] bg-white border-t border-gray-200 z-50 px-1 flex items-center justify-around pb-safe">
+    <div
+      className={`fixed sm:static bottom-0 left-0 right-0 h-[60px] bg-white border-t border-gray-200 z-50 px-1 flex items-center justify-around pb-safe transition-transform duration-300 ease-out ${
+        isHidden ? 'translate-y-full' : 'translate-y-0'
+      }`}
+    >
       <NavButton id="home" icon={Home} label="Acasă" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} isBlue={true} />
       <NavButton id="reels" icon={PlaySquare} label="Reels" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} />
       <NavButton id="friends" icon={Users} label="Prieteni" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} />
