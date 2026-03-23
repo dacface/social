@@ -10,13 +10,10 @@ import ProfileView from '@/components/ProfileView';
 import CreatePostModal from '@/components/CreatePostModal';
 import CreateReelModal from '@/components/CreateReelModal';
 import ReelsView from '@/components/ReelsView';
-
-const MOCK_STORIES = [
-  { id: 1, name: "Aiana Maria Rada", avatar: "https://i.pravatar.cc/150?u=1", image: "https://images.unsplash.com/photo-1541872596495-25b8431945ae?q=80&w=400&auto=format&fit=crop" },
-  { id: 2, name: "Alexandra Rus", avatar: "https://i.pravatar.cc/150?u=2", image: "https://images.unsplash.com/photo-1518605368461-1ee7e53f18e9?q=80&w=400&auto=format&fit=crop" },
-  { id: 3, name: "Diana Manta", avatar: "https://i.pravatar.cc/150?u=3", image: "https://images.unsplash.com/photo-1555529733-0e670560f7e1?q=80&w=400&auto=format&fit=crop" },
-  { id: 4, name: "Nadia Ghannou...", avatar: "https://i.pravatar.cc/150?u=4", image: "https://images.unsplash.com/photo-1500622944204-b135684e99fd?q=80&w=400&auto=format&fit=crop" },
-];
+import CreateStoryModal from '@/components/CreateStoryModal';
+import StoriesBar from '@/components/StoriesBar';
+import StoryViewer from '@/components/StoryViewer';
+import type { StoryRecord } from '@/lib/stories';
 
 
 
@@ -24,10 +21,14 @@ export default function Feed() {
   const [activeNav, setActiveNav] = useState('home');
   const [posts, setPosts] = useState<Post[]>([]);
   const [reels, setReels] = useState<Post[]>([]);
+  const [stories, setStories] = useState<StoryRecord[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateReelModal, setShowCreateReelModal] = useState(false);
+  const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
+  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingReels, setLoadingReels] = useState(true);
+  const [loadingStories, setLoadingStories] = useState(true);
   const [feedError, setFeedError] = useState('');
   const [reelsError, setReelsError] = useState('');
 
@@ -40,6 +41,11 @@ export default function Feed() {
     setReelsError('');
     setReels(prev => [newReel, ...prev]);
     setActiveNav('reels');
+  };
+
+  const handleStoryCreated = (newStory: StoryRecord) => {
+    setStories((prev) => [newStory, ...prev]);
+    setActiveStoryIndex(0);
   };
 
   useEffect(() => {
@@ -91,6 +97,29 @@ export default function Feed() {
     fetchReels();
   }, []);
 
+  useEffect(() => {
+    async function fetchStories() {
+      try {
+        setLoadingStories(true);
+        const res = await fetch('/api/stories?limit=12', { cache: 'no-store' });
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error('[Stories] Failed to load stories', data);
+          throw new Error(data.error || 'Story-urile nu au putut fi încărcate.');
+        }
+
+        setStories(Array.isArray(data.stories) ? data.stories : []);
+      } catch (err) {
+        console.error('[Stories] Failed to fetch stories from Firestore', err);
+      } finally {
+        setLoadingStories(false);
+      }
+    }
+
+    fetchStories();
+  }, []);
+
   const openPrimaryComposer = () => {
     if (activeNav === 'reels') {
       setShowCreateReelModal(true);
@@ -101,8 +130,8 @@ export default function Feed() {
   };
 
   return (
-    <main className="w-full min-h-screen bg-[#c9ccd1] font-sans pb-[70px] sm:pb-0">
-      <div className="bg-white max-w-[600px] mx-auto min-h-screen shadow-sm relative">
+    <main className={`w-full min-h-screen font-sans pb-[70px] sm:pb-0 ${activeNav === 'reels' ? 'bg-black' : 'bg-[#c9ccd1]'}`}>
+      <div className={`${activeNav === 'reels' ? 'bg-black' : 'bg-white'} max-w-[600px] mx-auto min-h-screen shadow-sm relative`}>
         
         {activeNav === 'profile' ? (
           <ProfileView />
@@ -152,29 +181,12 @@ export default function Feed() {
             <div className="w-full h-2 bg-[#c9ccd1]" />
 
             {/* Stories Section */}
-            <div className="bg-white pt-3 pb-4">
-              <div className="flex overflow-x-auto gap-2 px-4 no-scrollbar">
-                {MOCK_STORIES.map((story) => (
-                  <div 
-                    key={story.id} 
-                    className="relative flex-none w-[100px] h-[170px] rounded-xl overflow-hidden shadow-sm border border-black/10 group cursor-pointer"
-                  >
-                    <img src={story.image} alt={story.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 pointer-events-none" />
-                    
-                    {/* Story Avatar */}
-                    <div className="absolute top-3 left-3 w-10 h-10 rounded-full border-4 border-[#1877F2] overflow-hidden bg-white">
-                      <img src={story.avatar} alt={story.name} className="w-full h-full object-cover" />
-                    </div>
-                    
-                    {/* Story Name */}
-                    <span className="absolute bottom-2 left-2 right-2 text-white text-[13px] font-semibold leading-tight drop-shadow-md">
-                      {story.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <StoriesBar
+              stories={stories}
+              loading={loadingStories}
+              onCreateStory={() => setShowCreateStoryModal(true)}
+              onOpenStory={(index) => setActiveStoryIndex(index)}
+            />
 
             {/* Thick Separator */}
             <div className="w-full h-2 bg-[#c9ccd1]" />
@@ -219,6 +231,17 @@ export default function Feed() {
           isOpen={showCreateReelModal}
           onClose={() => setShowCreateReelModal(false)}
           onReelCreated={handleReelCreated}
+        />
+        <CreateStoryModal
+          isOpen={showCreateStoryModal}
+          onClose={() => setShowCreateStoryModal(false)}
+          onStoryCreated={handleStoryCreated}
+        />
+        <StoryViewer
+          stories={stories}
+          startIndex={activeStoryIndex ?? 0}
+          isOpen={activeStoryIndex !== null}
+          onClose={() => setActiveStoryIndex(null)}
         />
 
       </div>

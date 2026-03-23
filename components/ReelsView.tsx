@@ -95,7 +95,7 @@ export default function ReelsView({ reels, loading, error, onCreateReel }: Reels
         </div>
       </div>
 
-      <div className="no-scrollbar h-[calc(100vh-124px)] snap-y snap-mandatory overflow-y-auto">
+      <div className="no-scrollbar h-[calc(100dvh-124px)] snap-y snap-mandatory overflow-y-auto bg-black">
         {reels.map((reel) => (
           <ReelCard key={reel.id} reel={reel} soundEnabled={soundEnabled} onEnableSound={handleEnableSound} />
         ))}
@@ -232,68 +232,68 @@ function ReelCard({
 
   return (
     <article ref={cardRef} className="snap-start">
-      <div className="relative min-h-[calc(100vh-124px)] w-full bg-black">
-        <div className="relative h-[calc(100vh-124px)] w-full overflow-hidden bg-black text-white">
-        <video
-          ref={videoRef}
-          src={reel.videoUrl}
-          className="h-full w-full bg-black object-cover"
-          controls={showControls}
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          autoPlay
-          onClick={handleVideoClick}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/85" />
+      <div className="relative min-h-[calc(100dvh-124px)] w-full bg-black">
+        <div className="relative h-[calc(100dvh-124px)] w-full overflow-hidden bg-black text-white">
+          <video
+            ref={videoRef}
+            src={reel.videoUrl}
+            className="h-full w-full bg-black object-cover"
+            controls={showControls}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            autoPlay
+            onClick={handleVideoClick}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/85" />
 
-        {!soundEnabled ? (
+          {!soundEnabled ? (
+            <button
+              onClick={handleEnableSound}
+              className="absolute right-4 top-14 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm"
+            >
+              Activează sunetul
+            </button>
+          ) : null}
+
           <button
-            onClick={handleEnableSound}
-            className="absolute right-4 top-14 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm"
+            onClick={handleToggleSound}
+            className="absolute right-4 top-28 rounded-full bg-black/50 p-3 text-white backdrop-blur-sm"
+            aria-label={soundEnabled ? 'Dezactivează sunetul' : 'Activează sunetul'}
           >
-            Activează sunetul
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </button>
-        ) : null}
 
-        <button
-          onClick={handleToggleSound}
-          className="absolute right-4 top-28 rounded-full bg-black/50 p-3 text-white backdrop-blur-sm"
-          aria-label={soundEnabled ? 'Dezactivează sunetul' : 'Activează sunetul'}
-        >
-          {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </button>
-
-        <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 py-4">
-          <div className="rounded-full bg-black/35 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">
-            Reel
+          <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-4 py-4">
+            <div className="rounded-full bg-black/35 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">
+              Reel
+            </div>
+            <div className="rounded-full bg-black/35 px-3 py-1 text-xs font-medium text-white/85">{reel.time}</div>
           </div>
-          <div className="rounded-full bg-black/35 px-3 py-1 text-xs font-medium text-white/85">{reel.time}</div>
-        </div>
 
-        <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 px-4 py-5">
-          <div className="max-w-[75%]">
-            <div className="mb-2 flex items-center gap-3">
-              <img src={reel.authorAvatar} alt={reel.authorName} className="h-11 w-11 rounded-full border border-white/20 object-cover" />
-              <div>
-                <div className="text-sm font-bold">{reel.authorName}</div>
-                <div className="text-xs text-white/65">Publicat acum în fluxul Reels</div>
+          <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 px-4 py-5">
+            <div className="max-w-[75%]">
+              <div className="mb-2 flex items-center gap-3">
+                <img src={reel.authorAvatar} alt={reel.authorName} className="h-11 w-11 rounded-full border border-white/20 object-cover" />
+                <div>
+                  <div className="text-sm font-bold">{reel.authorName}</div>
+                  <div className="text-xs text-white/65">Publicat acum în fluxul Reels</div>
+                </div>
+              </div>
+              {reel.caption ? <p className="text-sm leading-relaxed text-white/90">{reel.caption}</p> : null}
+              <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/75">
+                <Music2 className="h-3.5 w-3.5" />
+                Clip original
               </div>
             </div>
-            {reel.caption ? <p className="text-sm leading-relaxed text-white/90">{reel.caption}</p> : null}
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/75">
-              <Music2 className="h-3.5 w-3.5" />
-              Clip original
+
+            <div className="flex flex-col items-center gap-4 pb-1">
+              <ReelAction icon={<Heart className={`h-6 w-6 ${isLiked ? 'fill-current text-[#ff4d67]' : ''}`} />} label={isLiked ? reel.likes + 1 : reel.likes} onClick={() => setIsLiked((value) => !value)} />
+              <ReelAction icon={<MessageCircle className="h-6 w-6" />} label={reel.comments} />
+              <ReelAction icon={<Send className="h-6 w-6" />} label={reel.shares} />
             </div>
           </div>
-
-          <div className="flex flex-col items-center gap-4 pb-1">
-            <ReelAction icon={<Heart className={`h-6 w-6 ${isLiked ? 'fill-current text-[#ff4d67]' : ''}`} />} label={isLiked ? reel.likes + 1 : reel.likes} onClick={() => setIsLiked((value) => !value)} />
-            <ReelAction icon={<MessageCircle className="h-6 w-6" />} label={reel.comments} />
-            <ReelAction icon={<Send className="h-6 w-6" />} label={reel.shares} />
-          </div>
-        </div>
         </div>
       </div>
     </article>
