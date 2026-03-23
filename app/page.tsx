@@ -16,60 +16,35 @@ const MOCK_STORIES = [
   { id: 4, name: "Nadia Ghannou...", avatar: "https://i.pravatar.cc/150?u=4", image: "https://images.unsplash.com/photo-1500622944204-b135684e99fd?q=80&w=400&auto=format&fit=crop" },
 ];
 
-const MOCK_POSTS: Post[] = [
-  {
-    id: '1',
-    authorName: 'Vlad Voiculescu',
-    authorAvatar: 'https://i.pravatar.cc/150?u=vlad',
-    isVerified: true,
-    location: '8h',
-    time: '8h', // using time as the primary indicator like FB
-    caption: 'Weekendul acesta au votat trei țări europene, iar mâine votează și Danemarca.\n\nÎn Franța a fost turul al doilea al alegerilor municipale. Parisul rămâne la stânga, Emmanuel Grégoire (PS) o succedează pe Anne Hidalgo. Marsili... ',
-    hasMoreText: true,
-    hashtags: '',
-    tags: [],
-    isFakeNews: false,
-    likes: 1400,
-    likesText: "1,4mii",
-    comments: 134,
-    shares: 71,
-    imageUrl: ''
-  },
-  {
-    id: '2',
-    authorName: 'ImmoSafe.ro',
-    authorAvatar: 'https://i.pravatar.cc/150?u=immo',
-    isVerified: false,
-    location: 'Sponsorizat',
-    time: 'Sponsorizat',
-    caption: 'Cumperi un imobil încă în construcție... ',
-    hasMoreText: true,
-    hashtags: '',
-    tags: [],
-    isFakeNews: false,
-    likes: 320,
-    likesText: "320",
-    comments: 45,
-    shares: 12,
-    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop'
-  }
-];
+
 
 export default function Feed() {
   const [activeNav, setActiveNav] = useState('home');
-  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [loadingPosts, setLoadingPosts] = useState(true);
 
   const handlePostCreated = (newPost: Post) => {
     setPosts(prev => [newPost, ...prev]);
   };
 
+  // Fetch posts from Firestore on mount
   useEffect(() => {
-    fetch('/api/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'VIEW_FEED', timestamp: new Date().toISOString() })
-    }).catch(() => {});
+    async function fetchPosts() {
+      try {
+        setLoadingPosts(true);
+        const res = await fetch('/api/posts?limit=20');
+        const data = await res.json();
+        if (data.posts) {
+          setPosts(data.posts);
+        }
+      } catch (err) {
+        console.error('Failed to fetch posts from Firestore:', err);
+      } finally {
+        setLoadingPosts(false);
+      }
+    }
+    fetchPosts();
   }, []);
 
   return (
@@ -151,12 +126,23 @@ export default function Feed() {
 
             {/* FEED LOOP */}
             <div className="flex flex-col">
-              {posts.map((post) => (
-                <React.Fragment key={post.id}>
-                  <FeedPost post={post} />
-                  <div className="w-full h-2 bg-[#c9ccd1]" />
-                </React.Fragment>
-              ))}
+              {loadingPosts ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="w-8 h-8 border-3 border-gray-300 border-t-[#1877F2] rounded-full animate-spin" />
+                </div>
+              ) : posts.length > 0 ? (
+                posts.map((post) => (
+                  <React.Fragment key={post.id}>
+                    <FeedPost post={post} />
+                    <div className="w-full h-2 bg-[#c9ccd1]" />
+                  </React.Fragment>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 px-4 bg-white">
+                  <p className="text-[16px] font-semibold text-[#65676b] text-center">Nu există postări încă.</p>
+                  <p className="text-[14px] text-[#65676b] mt-1 text-center">Creează prima ta postare!</p>
+                </div>
+              )}
             </div>
           </>
         )}

@@ -43,19 +43,8 @@ export async function GET(req: NextRequest) {
     const snapshot = await feedsRef.get();
     
     if (snapshot.empty) {
-      // 3. Fallback: algorithmic or trending feed generation
-      // If the user's feed is empty, we can fetch public trending debates/reels
-      const trendingSnapshot = await db.collection('posts')
-        .orderBy('likesCount', 'desc')
-        .limit(limit)
-        .get();
-        
-      const fallbackItems = trendingSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      
-      return NextResponse.json({ items: fallbackItems, nextCursor: null, fallback: true });
+      console.log('[GET /api/feed] No feed items found for user:', uid);
+      return NextResponse.json({ items: [], nextCursor: null });
     }
 
     const items = snapshot.docs.map(doc => {

@@ -50,15 +50,11 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
 
       // Upload image to Firebase Storage if exists
       if (imageFile) {
-        try {
-          const storageRef = ref(clientStorage, `posts/${Date.now()}_${imageFile.name}`);
-          const snapshot = await uploadBytes(storageRef, imageFile);
-          imageUrl = await getDownloadURL(snapshot.ref);
-        } catch (uploadErr) {
-          console.warn('Firebase Storage upload failed, using local preview:', uploadErr);
-          // Fallback: use the local preview as a data URL (works for demo)
-          imageUrl = imagePreview || '';
-        }
+        console.log('[CreatePost] Uploading image to Firebase Storage...');
+        const storageRef = ref(clientStorage, `posts/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
+        console.log('[CreatePost] Image uploaded successfully:', imageUrl);
       }
 
       // Send to API
@@ -81,23 +77,7 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
         throw new Error(data.error || 'Failed to create post');
       }
 
-      // Map server response to FeedPost format
-      const newPost = {
-        id: data.post.id,
-        authorName: data.post.userName,
-        authorAvatar: data.post.userAvatar,
-        isVerified: data.post.isVerified,
-        time: 'Acum',
-        caption: data.post.text,
-        hasMoreText: false,
-        likes: 0,
-        likesText: '0',
-        comments: 0,
-        shares: 0,
-        imageUrl: data.post.imageUrl,
-      };
-
-      onPostCreated(newPost);
+      onPostCreated(data.post);
 
       // Reset state
       setText('');
