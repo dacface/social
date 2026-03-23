@@ -287,7 +287,7 @@ export default function Feed() {
         ) : (
           <>
             {/* Top Navigation */}
-            <div className="sticky top-0 z-40 h-[57px] bg-white">
+            <div className="sticky top-0 z-40 h-[57px] bg-transparent">
               <div
                 className={`absolute inset-x-0 top-0 bg-white transition-transform duration-300 ease-out ${
                   isChromeHidden ? 'pointer-events-none -translate-y-full' : 'translate-y-0'
