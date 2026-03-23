@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { 
   MoreHorizontal, X, Globe2,
-  Camera, Smile, Send, Scale, Sparkles, Bookmark, Link2, Flag, ImagePlus
+  Camera, Smile, Send, Sparkles, Bookmark, Link2, Flag, ImagePlus
 } from 'lucide-react';
 import DezbatereModal from './DezbatereModal';
 import AiAnalysisModal from './AiAnalysisModal';
@@ -451,16 +451,18 @@ export default function FeedPost({ post }: FeedPostProps) {
                 onClick={() => setIsShareSheetOpen(true)}
               />
               <InlineStatButton
-                icon={<Scale className="h-[22px] w-[22px] text-[#65676b]" strokeWidth={1.9} />}
+                icon={<DebateSearchIcon />}
                 value={Math.max(1, Math.floor(commentCount / 3))}
                 label="Dezbatere"
                 onClick={() => setIsDezbatereOpen(true)}
+                hideValue
               />
               <InlineStatButton
                 icon={<Sparkles className="h-[22px] w-[22px] text-[#65676b]" strokeWidth={1.9} />}
                 value={Math.max(1, Math.floor(likeCount / 8))}
                 label="Analiză AI"
                 onClick={() => setIsAiOpen(true)}
+                hideValue
               />
             </div>
 
@@ -589,12 +591,14 @@ function InlineStatButton({
   label,
   onClick,
   isActive,
+  hideValue,
 }: {
   icon: React.ReactNode;
   value: number;
   label: string;
   onClick?: () => void;
   isActive?: boolean;
+  hideValue?: boolean;
 }) {
   return (
     <button 
@@ -603,7 +607,7 @@ function InlineStatButton({
       aria-label={label}
     >
       {icon}
-      <span className="text-[16px] font-normal tracking-tight">{value}</span>
+      {hideValue ? null : <span className="text-[16px] font-normal tracking-tight">{value}</span>}
     </button>
   );
 }
@@ -683,6 +687,40 @@ function FacebookShareIcon({ className = 'h-[24px] w-[24px]' }: { className?: st
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function DebateSearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[28px] w-[28px]" fill="none" aria-hidden="true">
+      <path
+        d="M4.6 13.2a7.4 7.4 0 0 1 14.8 0"
+        stroke="#ff3b75"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <circle cx="8.1" cy="10.1" r="1.55" fill="#7b5be8" />
+      <circle cx="12" cy="11.15" r="1.45" fill="#20c9b5" />
+      <circle cx="15.9" cy="10.1" r="1.55" fill="#ffd400" />
+      <path
+        d="M5.95 19.1c.18-2.1 1.2-4.25 3.35-4.25 1.9 0 2.88 1.4 2.88 3.24v1.01H5.95Z"
+        fill="#7b5be8"
+      />
+      <path
+        d="M9.8 19.1c.07-1.78 1.02-3.3 2.2-3.3s2.13 1.52 2.2 3.3H9.8Z"
+        fill="#20c9b5"
+      />
+      <path
+        d="M11.82 19.1c.18-2.02 1.2-4.02 3.2-4.02 1.76 0 2.67 1.27 2.93 3.08l-1.08 0c-.6.6-1.55.94-2.8.94h-2.25Z"
+        fill="#ffd400"
+      />
+      <path
+        d="M8.7 15.5 6.1 19.1"
+        stroke="#7b5be8"
+        strokeWidth="1.7"
+        strokeLinecap="round"
       />
     </svg>
   );
