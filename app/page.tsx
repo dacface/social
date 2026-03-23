@@ -6,6 +6,8 @@ import {
   Home, PlaySquare, Users, Bell, UserCircle2
 } from 'lucide-react';
 import FeedPost, { Post } from '@/components/FeedPost';
+import ProfileView from '@/components/ProfileView';
+import CreatePostModal from '@/components/CreatePostModal';
 
 const MOCK_STORIES = [
   { id: 1, name: "Aiana Maria Rada", avatar: "https://i.pravatar.cc/150?u=1", image: "https://images.unsplash.com/photo-1541872596495-25b8431945ae?q=80&w=400&auto=format&fit=crop" },
@@ -55,6 +57,12 @@ const MOCK_POSTS: Post[] = [
 
 export default function Feed() {
   const [activeNav, setActiveNav] = useState('home');
+  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const handlePostCreated = (newPost: Post) => {
+    setPosts(prev => [newPost, ...prev]);
+  };
 
   useEffect(() => {
     fetch('/api/track', {
@@ -68,84 +76,100 @@ export default function Feed() {
     <main className="w-full min-h-screen bg-[#c9ccd1] font-sans pb-[70px] sm:pb-0">
       <div className="bg-white max-w-[600px] mx-auto min-h-screen shadow-sm relative">
         
-        {/* Top Navigation */}
-        <div className="sticky top-0 z-40 bg-white">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-            {/* Left elements */}
-            <div className="flex items-center gap-3">
-              <button className="text-gray-900 group">
-                <Menu className="w-[26px] h-[26px] group-hover:bg-gray-100 rounded-sm" />
-              </button>
-              <h1 className="text-[26px] font-bold text-[#1877F2] tracking-tighter ml-1 drop-shadow-sm font-['Inter',sans-serif]">dacface</h1>
-            </div>
-
-            {/* Right icons */}
-            <div className="flex items-center gap-2">
-              <IconButton icon={<Plus className="w-[22px] h-[22px]" />} />
-              <IconButton icon={<Search className="w-[22px] h-[22px]" />} />
-              <IconButton icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />} badge="2" />
-            </div>
-          </div>
-        </div>
-
-        {/* Post Creator */}
-        <div className="px-4 py-3 bg-white flex items-center gap-3">
-          <img 
-            src="https://i.pravatar.cc/150?u=current_user" 
-            className="w-10 h-10 rounded-full border border-gray-200 object-cover"
-            alt="You"
-          />
-          <button className="flex-1 text-left px-4 py-2 bg-white border border-gray-300 rounded-full text-[15px] font-normal text-gray-900 hover:bg-gray-50 transition-colors">
-            La ce te gândești?
-          </button>
-          <button className="p-1">
-            <ImageIcon className="w-6 h-6 text-gray-500 fill-gray-500/20" />
-          </button>
-        </div>
-
-        {/* Thick Separator */}
-        <div className="w-full h-2 bg-[#c9ccd1]" />
-
-        {/* Stories Section */}
-        <div className="bg-white pt-3 pb-4">
-          <div className="flex overflow-x-auto gap-2 px-4 no-scrollbar">
-            {MOCK_STORIES.map((story) => (
-              <div 
-                key={story.id} 
-                className="relative flex-none w-[100px] h-[170px] rounded-xl overflow-hidden shadow-sm border border-black/10 group cursor-pointer"
-              >
-                <img src={story.image} alt={story.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 pointer-events-none" />
-                
-                {/* Story Avatar */}
-                <div className="absolute top-3 left-3 w-10 h-10 rounded-full border-4 border-[#1877F2] overflow-hidden bg-white">
-                  <img src={story.avatar} alt={story.name} className="w-full h-full object-cover" />
+        {activeNav === 'profile' ? (
+          <ProfileView />
+        ) : (
+          <>
+            {/* Top Navigation */}
+            <div className="sticky top-0 z-40 bg-white">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                {/* Left elements */}
+                <div className="flex items-center gap-3">
+                  <button className="text-gray-900 group">
+                    <Menu className="w-[26px] h-[26px] group-hover:bg-gray-100 rounded-sm" />
+                  </button>
+                  <h1 className="text-[26px] font-bold text-[#1877F2] tracking-tighter ml-1 drop-shadow-sm font-['Inter',sans-serif]">dacface</h1>
                 </div>
-                
-                {/* Story Name */}
-                <span className="absolute bottom-2 left-2 right-2 text-white text-[13px] font-semibold leading-tight drop-shadow-md">
-                  {story.name}
-                </span>
+
+                {/* Right icons */}
+                <div className="flex items-center gap-2">
+                  <IconButton icon={<Plus className="w-[22px] h-[22px]" />} />
+                  <IconButton icon={<Search className="w-[22px] h-[22px]" />} />
+                  <IconButton icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />} badge="2" />
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Thick Separator */}
-        <div className="w-full h-2 bg-[#c9ccd1]" />
+            {/* Post Creator */}
+            <div className="px-4 py-3 bg-white flex items-center gap-3">
+              <img 
+                src="https://i.pravatar.cc/150?u=current_user" 
+                className="w-10 h-10 rounded-full border border-gray-200 object-cover"
+                alt="You"
+              />
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex-1 text-left px-4 py-2 bg-white border border-gray-300 rounded-full text-[15px] font-normal text-gray-900 hover:bg-gray-50 transition-colors"
+              >
+                La ce te gândești?
+              </button>
+              <button onClick={() => setShowCreateModal(true)} className="p-1">
+                <ImageIcon className="w-6 h-6 text-gray-500 fill-gray-500/20" />
+              </button>
+            </div>
 
-        {/* FEED LOOP */}
-        <div className="flex flex-col">
-          {MOCK_POSTS.map((post) => (
-            <React.Fragment key={post.id}>
-              <FeedPost post={post} />
-              <div className="w-full h-2 bg-[#c9ccd1]" />
-            </React.Fragment>
-          ))}
-        </div>
+            {/* Thick Separator */}
+            <div className="w-full h-2 bg-[#c9ccd1]" />
+
+            {/* Stories Section */}
+            <div className="bg-white pt-3 pb-4">
+              <div className="flex overflow-x-auto gap-2 px-4 no-scrollbar">
+                {MOCK_STORIES.map((story) => (
+                  <div 
+                    key={story.id} 
+                    className="relative flex-none w-[100px] h-[170px] rounded-xl overflow-hidden shadow-sm border border-black/10 group cursor-pointer"
+                  >
+                    <img src={story.image} alt={story.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 pointer-events-none" />
+                    
+                    {/* Story Avatar */}
+                    <div className="absolute top-3 left-3 w-10 h-10 rounded-full border-4 border-[#1877F2] overflow-hidden bg-white">
+                      <img src={story.avatar} alt={story.name} className="w-full h-full object-cover" />
+                    </div>
+                    
+                    {/* Story Name */}
+                    <span className="absolute bottom-2 left-2 right-2 text-white text-[13px] font-semibold leading-tight drop-shadow-md">
+                      {story.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Thick Separator */}
+            <div className="w-full h-2 bg-[#c9ccd1]" />
+
+            {/* FEED LOOP */}
+            <div className="flex flex-col">
+              {posts.map((post) => (
+                <React.Fragment key={post.id}>
+                  <FeedPost post={post} />
+                  <div className="w-full h-2 bg-[#c9ccd1]" />
+                </React.Fragment>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* BOTTOM NAV BAR */}
         <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} />
+
+        {/* CREATE POST MODAL */}
+        <CreatePostModal 
+          isOpen={showCreateModal} 
+          onClose={() => setShowCreateModal(false)} 
+          onPostCreated={handlePostCreated} 
+        />
 
       </div>
 
