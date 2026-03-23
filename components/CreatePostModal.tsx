@@ -60,29 +60,11 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
       let imageUrl = '';
 
       if (imageFile) {
-        console.log('[CreatePost] Uploading image through /api/upload', {
-          name: imageFile.name,
-          size: imageFile.size,
-          type: imageFile.type,
-        });
-
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', imageFile);
-
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        });
-
-        const uploadData = await readJsonSafely(uploadResponse);
-
-        if (!uploadResponse.ok) {
-          console.error('[CreatePost] Image upload failed', uploadData);
-          throw new Error(getApiErrorMessage(uploadData, 'Imaginea nu a putut fi încărcată.'));
+        if (!imagePreview?.startsWith('data:image/')) {
+          throw new Error('Imaginea selectată nu a putut fi pregătită pentru publicare.');
         }
 
-        imageUrl = uploadData.url || '';
-        console.log('[CreatePost] Image uploaded successfully', { imageUrl });
+        imageUrl = imagePreview;
       }
 
       console.log('[CreatePost] Creating Firestore post', {
