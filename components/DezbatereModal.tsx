@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { X, ThumbsUp, ThumbsDown, ArrowRight } from 'lucide-react';
+import { X, ThumbsUp, ArrowRight } from 'lucide-react';
 
 interface DezbatereModalProps {
   isOpen: boolean;
@@ -11,8 +11,43 @@ interface DezbatereModalProps {
 
 export default function DezbatereModal({ isOpen, onClose, postId }: DezbatereModalProps) {
   const [activeTab, setActiveTab] = useState<'pro' | 'contra'>('pro');
+  const [draft, setDraft] = useState('');
+  const [argumentsByTab, setArgumentsByTab] = useState({
+    pro: [
+      { id: `${postId}-pro-1`, author: 'Ion Ionescu', text: 'Această măsură va aduce beneficii pe termen lung pentru economie. Este necesară o reformă acum.', votes: 245 },
+      { id: `${postId}-pro-2`, author: 'Maria G.', text: 'Studiile arată clar că direcția aceasta funcționează în alte țări europene.', votes: 180 },
+    ],
+    contra: [
+      { id: `${postId}-contra-1`, author: 'Radu Popa', text: 'Costurile de implementare sunt prea mari pentru bugetul actual. Ne vom îndatora și mai mult.', votes: 312 },
+      { id: `${postId}-contra-2`, author: 'Elena D.', text: 'Nu a existat o consultare publică reală înainte de a propune acest lucru.', votes: 89 },
+    ],
+  });
 
   if (!isOpen) return null;
+
+  const visibleArguments = argumentsByTab[activeTab];
+
+  const handleSubmitArgument = () => {
+    const nextText = draft.trim();
+
+    if (!nextText) {
+      return;
+    }
+
+    setArgumentsByTab((current) => ({
+      ...current,
+      [activeTab]: [
+        {
+          id: `${postId}-${activeTab}-${Date.now()}`,
+          author: 'Alexandru Marin',
+          text: nextText,
+          votes: 1,
+        },
+        ...current[activeTab],
+      ],
+    }));
+    setDraft('');
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
@@ -70,45 +105,29 @@ export default function DezbatereModal({ isOpen, onClose, postId }: DezbatereMod
 
         {/* Arguments List */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-          {activeTab === 'pro' ? (
-            <>
-              <ArgumentCard 
-                author="Ion Ionescu" 
-                text="Această măsură va aduce beneficii pe termen lung pentru economie. Este necesară o reformă acum." 
-                votes={245} 
-                isPro={true} 
-              />
-              <ArgumentCard 
-                author="Maria G." 
-                text="Studiile arată clar că direcția aceasta funcționează în alte țări europene." 
-                votes={180} 
-                isPro={true} 
-              />
-            </>
-          ) : (
-            <>
-              <ArgumentCard 
-                author="Radu Popa" 
-                text="Costurile de implementare sunt prea mari pentru bugetul actual. Ne vom îndatora și mai mult." 
-                votes={312} 
-                isPro={false} 
-              />
-              <ArgumentCard 
-                author="Elena D." 
-                text="Nu a existat o consultare publică reală înainte de a propune acest lucru." 
-                votes={89} 
-                isPro={false} 
-              />
-            </>
-          )}
+          {visibleArguments.map((argument) => (
+            <ArgumentCard key={argument.id} author={argument.author} text={argument.text} votes={argument.votes} isPro={activeTab === 'pro'} />
+          ))}
         </div>
 
         {/* Add argument footer */}
         <div className="bg-white p-4 border-t border-gray-200">
-          <button className="w-full py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors">
-            Participă la dezbatere
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          <div className="flex flex-col gap-3">
+            <textarea
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder={activeTab === 'pro' ? 'Adaugă un argument PRO...' : 'Adaugă un argument CONTRA...'}
+              className="min-h-[96px] w-full resize-none rounded-lg border border-gray-200 bg-[#F7F8FA] px-3 py-3 text-[14px] text-gray-800 outline-none"
+            />
+            <button
+              onClick={handleSubmitArgument}
+              disabled={!draft.trim()}
+              className="w-full py-2.5 bg-[#1877F2] hover:bg-[#166FE5] disabled:bg-[#b9d4fb] text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+            >
+              Participă la dezbatere
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

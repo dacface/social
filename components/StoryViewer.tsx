@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Globe2, Volume2, VolumeX, X } from 'lucide-react';
 
 import type { StoryRecord } from '@/lib/stories';
@@ -20,22 +20,31 @@ export default function StoryViewer({ stories, startIndex, isOpen, onClose }: St
   const [soundEnabled, setSoundEnabled] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentIndex(startIndex);
-      setProgress(0);
-    }
-  }, [isOpen, startIndex]);
-
   const currentStory = stories[currentIndex];
   const isVideo = currentStory?.mediaType === 'video';
+
+  const advanceStory = useCallback(() => {
+    if (currentIndex >= stories.length - 1) {
+      onClose();
+      return;
+    }
+
+    setProgress(0);
+    setCurrentIndex((index) => index + 1);
+  }, [currentIndex, onClose, stories.length]);
+
+  const goBackStory = useCallback(() => {
+    setCurrentIndex((index) => {
+      const nextIndex = index <= 0 ? 0 : index - 1;
+      setProgress(0);
+      return nextIndex;
+    });
+  }, []);
 
   useEffect(() => {
     if (!isOpen || !currentStory) {
       return;
     }
-
-    setProgress(0);
 
     if (isVideo) {
       return;
@@ -55,7 +64,7 @@ export default function StoryViewer({ stories, startIndex, isOpen, onClose }: St
     return () => {
       clearInterval(interval);
     };
-  }, [currentIndex, currentStory, isOpen, isVideo]);
+  }, [advanceStory, currentIndex, currentStory, isOpen, isVideo]);
 
   const progressBars = useMemo(
     () =>
@@ -75,19 +84,6 @@ export default function StoryViewer({ stories, startIndex, isOpen, onClose }: St
 
   if (!isOpen || !currentStory) {
     return null;
-  }
-
-  function advanceStory() {
-    if (currentIndex >= stories.length - 1) {
-      onClose();
-      return;
-    }
-
-    setCurrentIndex((index) => index + 1);
-  }
-
-  function goBackStory() {
-    setCurrentIndex((index) => (index <= 0 ? 0 : index - 1));
   }
 
   return (

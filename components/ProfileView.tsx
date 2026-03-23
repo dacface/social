@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { 
-  UserPlus, MessageCircle, Scale, Sparkles, MapPin, Calendar, Link as LinkIcon, Briefcase
+  UserPlus, MessageCircle, Scale, Sparkles, MapPin, Calendar, Link as LinkIcon, Briefcase, X
 } from 'lucide-react';
 import FeedPost, { Post } from './FeedPost';
 import DezbatereModal from './DezbatereModal';
@@ -58,6 +58,30 @@ export default function ProfileView() {
   const [isFollowed, setIsFollowed] = useState(false);
   const [isDezbatereOpen, setIsDezbatereOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
+  const [messageDraft, setMessageDraft] = useState('');
+  const [messageStatus, setMessageStatus] = useState('');
+  const [statsSheet, setStatsSheet] = useState<null | 'followers' | 'following' | 'posts'>(null);
+  const [activePhoto, setActivePhoto] = useState<string | null>(null);
+
+  const profilePhotos = Array.from({ length: 9 }).map((_, idx) => `https://images.unsplash.com/photo-15507${idx}1827-4bd374c?q=80&w=800&auto=format&fit=crop`);
+
+  const profileVideos: Post[] = [
+    {
+      id: 'v1',
+      type: 'reel',
+      authorName: MOCK_USER.name,
+      authorAvatar: MOCK_USER.avatar,
+      isVerified: true,
+      time: '3 zile',
+      caption: 'Un scurt tur din culisele ultimului eveniment la care am participat.',
+      hasMoreText: false,
+      likes: 118,
+      likesText: '118',
+      comments: 16,
+      shares: 5,
+      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+    },
+  ];
 
   const handleFollow = () => {
     setIsFollowed(!isFollowed);
@@ -69,6 +93,24 @@ export default function ProfileView() {
         body: JSON.stringify({ type: 'USER_FOLLOW', userId: MOCK_USER.id, timestamp: new Date().toISOString() })
       }).catch(() => {});
     }
+  };
+
+  const handleSendMessage = () => {
+    const nextMessage = messageDraft.trim();
+
+    if (!nextMessage) {
+      return;
+    }
+
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'USER_MESSAGE', userId: MOCK_USER.id, text: nextMessage, timestamp: new Date().toISOString() })
+    }).catch(() => {});
+
+    setMessageStatus('Mesaj trimis.');
+    setMessageDraft('');
+    setActiveTab('despre');
   };
 
   return (
@@ -118,18 +160,18 @@ export default function ProfileView() {
 
         {/* Stats Section */}
         <div className="px-4 py-3 flex items-center justify-center gap-6 border-t border-b border-gray-100 mt-2 text-center">
-          <div className="flex flex-col cursor-pointer hover:opacity-80">
+          <button onClick={() => setStatsSheet('followers')} className="flex flex-col cursor-pointer hover:opacity-80">
             <span className="text-[16px] font-bold text-[#050505]">{MOCK_USER.followers}</span>
             <span className="text-[13px] text-[#65676b] font-medium">Urmăritori</span>
-          </div>
-          <div className="flex flex-col cursor-pointer hover:opacity-80">
+          </button>
+          <button onClick={() => setStatsSheet('following')} className="flex flex-col cursor-pointer hover:opacity-80">
             <span className="text-[16px] font-bold text-[#050505]">{MOCK_USER.following}</span>
             <span className="text-[13px] text-[#65676b] font-medium">Urmărește</span>
-          </div>
-          <div className="flex flex-col cursor-pointer hover:opacity-80">
+          </button>
+          <button onClick={() => setStatsSheet('posts')} className="flex flex-col cursor-pointer hover:opacity-80">
             <span className="text-[16px] font-bold text-[#050505]">{MOCK_USER.postsCount}</span>
             <span className="text-[13px] text-[#65676b] font-medium">Postări</span>
-          </div>
+          </button>
         </div>
 
         {/* Action Buttons Row */}
@@ -146,7 +188,13 @@ export default function ProfileView() {
             {isFollowed ? 'Urmărești' : 'Urmărește'}
           </button>
 
-          <button className="flex-1 min-w-[90px] flex items-center justify-center gap-1.5 py-2 bg-gray-200 text-[#050505] rounded-lg font-semibold text-[14px] hover:bg-gray-300 transition-colors shadow-sm">
+          <button
+            onClick={() => {
+              setActiveTab('despre');
+              setMessageStatus('');
+            }}
+            className="flex-1 min-w-[90px] flex items-center justify-center gap-1.5 py-2 bg-gray-200 text-[#050505] rounded-lg font-semibold text-[14px] hover:bg-gray-300 transition-colors shadow-sm"
+          >
             <MessageCircle className="w-4 h-4 text-gray-900" strokeWidth={2.5} />
             Mesaj
           </button>
@@ -199,31 +247,59 @@ export default function ProfileView() {
               <InfoRow icon={<LinkIcon />} text={``} highlight={MOCK_USER.website} isLink />
               <InfoRow icon={<Calendar />} text={MOCK_USER.joinDate} />
             </div>
+            <div className="mt-5 rounded-xl border border-gray-200 bg-[#F7F8FA] p-4">
+              <h3 className="text-[15px] font-bold text-[#050505]">Trimite un mesaj rapid</h3>
+              <textarea
+                value={messageDraft}
+                onChange={(event) => setMessageDraft(event.target.value)}
+                placeholder={`Scrie-i lui ${MOCK_USER.name}...`}
+                className="mt-3 min-h-[96px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-3 text-[14px] text-[#050505] outline-none"
+              />
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-[#65676b]">{messageStatus}</span>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!messageDraft.trim()}
+                  className="rounded-lg bg-[#1877F2] px-4 py-2 text-[14px] font-semibold text-white disabled:bg-[#b9d4fb]"
+                >
+                  Trimite
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {activeTab === 'fotografii' && (
           <div className="bg-white p-2">
             <div className="grid grid-cols-3 gap-1">
-              {Array.from({ length: 9 }).map((_, idx) => (
-                <div key={idx} className="aspect-square bg-gray-200 relative cursor-pointer hover:opacity-90 overflow-hidden">
-                  <img src={`https://images.unsplash.com/photo-15507${idx}1827-4bd374c?q=80&w=300&auto=format&fit=crop`} alt="" className="w-full h-full object-cover" />
-                </div>
+              {profilePhotos.map((photoUrl, idx) => (
+                <button
+                  key={photoUrl}
+                  onClick={() => setActivePhoto(photoUrl)}
+                  className="aspect-square bg-gray-200 relative cursor-pointer hover:opacity-90 overflow-hidden"
+                >
+                  <img src={photoUrl} alt={`Fotografie ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
               ))}
             </div>
           </div>
         )}
 
         {activeTab === 'video' && (
-          <div className="bg-white p-4 text-center text-gray-500 font-medium">
-            Nu există videoclipuri încă.
-          </div>
+          profileVideos.map((videoPost) => (
+            <div className="bg-white" key={videoPost.id}>
+              <FeedPost post={videoPost} />
+              <div className="w-full h-2 bg-[#c9ccd1]" />
+            </div>
+          ))
         )}
       </div>
 
       {/* Modals for profile specific AI / Debate */}
       <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} postId={`profile_${MOCK_USER.id}`} />
       <AiAnalysisModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} postId={`profile_${MOCK_USER.id}`} />
+      <ProfileStatsSheet kind={statsSheet} onClose={() => setStatsSheet(null)} />
+      <ProfilePhotoViewer imageUrl={activePhoto} onClose={() => setActivePhoto(null)} />
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar {
@@ -238,7 +314,85 @@ export default function ProfileView() {
   );
 }
 
-function TabButton({ id, current, set, label }: any) {
+function ProfileStatsSheet({
+  kind,
+  onClose,
+}: {
+  kind: null | 'followers' | 'following' | 'posts';
+  onClose: () => void;
+}) {
+  if (!kind) {
+    return null;
+  }
+
+  const content =
+    kind === 'followers'
+      ? {
+          title: 'Urmăritori',
+          rows: ['Ana Preda', 'Darius Enache', 'Ioana Pavel'],
+        }
+      : kind === 'following'
+        ? {
+            title: 'Urmărește',
+            rows: ['Creator Economy România', 'TechStart Labs', 'Comunitatea Reels'],
+          }
+        : {
+            title: 'Postări',
+            rows: ['Postări publice: 56', 'Reel-uri: 8', 'Story-uri active: 2'],
+          };
+
+  return (
+    <div className="fixed inset-0 z-[88] bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white px-4 pb-6 pt-4 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
+        <div className="text-[18px] font-bold text-[#050505]">{content.title}</div>
+        <div className="mt-4 space-y-2">
+          {content.rows.map((row) => (
+            <div key={row} className="rounded-2xl bg-[#F7F8FA] px-4 py-3 text-[15px] font-semibold text-[#050505]">
+              {row}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfilePhotoViewer({ imageUrl, onClose }: { imageUrl: string | null; onClose: () => void }) {
+  if (!imageUrl) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[92] bg-black/95" onClick={onClose}>
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm"
+        aria-label="Închide fotografia"
+      >
+        <X className="h-6 w-6" />
+      </button>
+      <div className="flex h-full w-full items-center justify-center p-4">
+        <img src={imageUrl} alt="Fotografie profil" className="max-h-full max-w-full object-contain" />
+      </div>
+    </div>
+  );
+}
+
+function TabButton({
+  id,
+  current,
+  set,
+  label,
+}: {
+  id: string;
+  current: string;
+  set: (value: string) => void;
+  label: string;
+}) {
   const isActive = current === id;
   return (
     <button 
@@ -255,7 +409,17 @@ function TabButton({ id, current, set, label }: any) {
   );
 }
 
-function InfoRow({ icon, text, highlight, isLink }: any) {
+function InfoRow({
+  icon,
+  text,
+  highlight,
+  isLink,
+}: {
+  icon: React.ReactElement<{ className?: string }>;
+  text: string;
+  highlight?: string;
+  isLink?: boolean;
+}) {
   return (
     <div className="flex items-center gap-3 text-[15px] text-[#050505]">
       <div className="text-[#8c939d]">

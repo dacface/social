@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Menu, Plus, Search, MessageCircle, ImageIcon,
-  Home, PlaySquare, Users, Bell, UserCircle2
+  Home, PlaySquare, Users, Bell, UserCircle2, X
 } from 'lucide-react';
 import FeedPost, { Post } from '@/components/FeedPost';
 import ProfileView from '@/components/ProfileView';
@@ -13,6 +13,9 @@ import ReelsView from '@/components/ReelsView';
 import CreateStoryModal from '@/components/CreateStoryModal';
 import StoriesBar from '@/components/StoriesBar';
 import StoryViewer from '@/components/StoryViewer';
+import MarketplaceView from '@/components/MarketplaceView';
+import EventsView from '@/components/EventsView';
+import SavedView from '@/components/SavedView';
 import type { StoryRecord } from '@/lib/stories';
 
 
@@ -26,11 +29,15 @@ export default function Feed() {
   const [showCreateReelModal, setShowCreateReelModal] = useState(false);
   const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [activeUtilityPanel, setActiveUtilityPanel] = useState<null | 'menu' | 'search' | 'messages'>(null);
+  const [activeShortcutView, setActiveShortcutView] = useState<null | 'saved' | 'marketplace' | 'events'>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingReels, setLoadingReels] = useState(true);
   const [loadingStories, setLoadingStories] = useState(true);
   const [feedError, setFeedError] = useState('');
   const [reelsError, setReelsError] = useState('');
+  const [utilityToast, setUtilityToast] = useState('');
 
   const handlePostCreated = (newPost: Post) => {
     setFeedError('');
@@ -129,14 +136,55 @@ export default function Feed() {
     setShowCreateModal(true);
   };
 
+  useEffect(() => {
+    if (!utilityToast) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setUtilityToast('');
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [utilityToast]);
+
+  const handleMenuAction = (action: 'saved' | 'stories' | 'marketplace' | 'events') => {
+    if (action === 'stories') {
+      setActiveUtilityPanel(null);
+      setShowCreateStoryModal(true);
+      return;
+    }
+
+    if (action === 'saved') {
+      setActiveUtilityPanel(null);
+      setActiveShortcutView('saved');
+      return;
+    }
+
+    setActiveUtilityPanel(null);
+    setActiveShortcutView(action);
+  };
+
   return (
     <main className={`w-full min-h-screen font-sans pb-[70px] sm:pb-0 ${activeNav === 'reels' ? 'bg-black' : 'bg-[#c9ccd1]'}`}>
       <div className={`${activeNav === 'reels' ? 'bg-black' : 'bg-white'} max-w-[600px] mx-auto min-h-screen shadow-sm relative`}>
         
-        {activeNav === 'profile' ? (
+        {activeShortcutView === 'saved' ? (
+          <SavedView />
+        ) : activeShortcutView === 'marketplace' ? (
+          <MarketplaceView />
+        ) : activeShortcutView === 'events' ? (
+          <EventsView />
+        ) : activeNav === 'profile' ? (
           <ProfileView />
         ) : activeNav === 'reels' ? (
           <ReelsView reels={reels} loading={loadingReels} error={reelsError} onCreateReel={() => setShowCreateReelModal(true)} />
+        ) : activeNav === 'friends' ? (
+          <FriendsView />
+        ) : activeNav === 'notifications' ? (
+          <NotificationsView />
         ) : (
           <>
             {/* Top Navigation */}
@@ -144,7 +192,7 @@ export default function Feed() {
               <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
                 {/* Left elements */}
                 <div className="flex items-center gap-3">
-                  <button className="text-gray-900 group">
+                  <button onClick={() => setActiveUtilityPanel('menu')} className="text-gray-900 group">
                     <Menu className="w-[26px] h-[26px] group-hover:bg-gray-100 rounded-sm" />
                   </button>
                   <h1 className="text-[26px] font-bold text-[#1877F2] tracking-tighter ml-1 drop-shadow-sm font-['Inter',sans-serif]">dacface</h1>
@@ -153,8 +201,8 @@ export default function Feed() {
                 {/* Right icons */}
                 <div className="flex items-center gap-2">
                   <IconButton icon={<Plus className="w-[22px] h-[22px]" />} onClick={openPrimaryComposer} />
-                  <IconButton icon={<Search className="w-[22px] h-[22px]" />} />
-                  <IconButton icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />} badge="2" />
+                  <IconButton icon={<Search className="w-[22px] h-[22px]" />} onClick={() => setActiveUtilityPanel('search')} />
+                  <IconButton icon={<MessageCircle className="w-[22px] h-[22px] fill-current" />} badge="2" onClick={() => setActiveUtilityPanel('messages')} />
                 </div>
               </div>
             </div>
@@ -219,7 +267,7 @@ export default function Feed() {
         )}
 
         {/* BOTTOM NAV BAR */}
-        <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} />
+        <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={() => setActiveShortcutView(null)} />
 
         {/* CREATE POST MODAL */}
         <CreatePostModal 
@@ -237,12 +285,29 @@ export default function Feed() {
           onClose={() => setShowCreateStoryModal(false)}
           onStoryCreated={handleStoryCreated}
         />
-        <StoryViewer
-          stories={stories}
-          startIndex={activeStoryIndex ?? 0}
-          isOpen={activeStoryIndex !== null}
-          onClose={() => setActiveStoryIndex(null)}
+        {activeStoryIndex !== null ? (
+          <StoryViewer
+            key={`story-viewer-${activeStoryIndex}`}
+            stories={stories}
+            startIndex={activeStoryIndex}
+            isOpen={true}
+            onClose={() => setActiveStoryIndex(null)}
+          />
+        ) : null}
+        <UtilityPanel
+          kind={activeUtilityPanel}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onMenuAction={handleMenuAction}
+          onClose={() => setActiveUtilityPanel(null)}
         />
+        {utilityToast ? (
+          <div className="fixed inset-x-0 bottom-24 z-[90] flex justify-center px-4">
+            <div className="rounded-full bg-[#1C1E21] px-4 py-2 text-[13px] font-semibold text-white shadow-xl">
+              {utilityToast}
+            </div>
+          </div>
+        ) : null}
 
       </div>
 
@@ -272,14 +337,206 @@ function IconButton({ icon, badge, onClick }: { icon: React.ReactNode, badge?: s
   );
 }
 
-function BottomNav({ activeNav, setActiveNav }: { activeNav: string, setActiveNav: (s: string) => void }) {
+function BottomNav({
+  activeNav,
+  setActiveNav,
+  onNavigate,
+}: {
+  activeNav: string;
+  setActiveNav: (s: string) => void;
+  onNavigate: () => void;
+}) {
   return (
     <div className="fixed sm:static bottom-0 left-0 right-0 h-[60px] bg-white border-t border-gray-200 z-50 px-1 flex items-center justify-around pb-safe">
-      <NavButton id="home" icon={Home} label="Acasă" activeNav={activeNav} setActiveNav={setActiveNav} isBlue={true} />
-      <NavButton id="reels" icon={PlaySquare} label="Reels" activeNav={activeNav} setActiveNav={setActiveNav} />
-      <NavButton id="friends" icon={Users} label="Prieteni" activeNav={activeNav} setActiveNav={setActiveNav} />
-      <NavButton id="notifications" icon={Bell} label="Notificări" activeNav={activeNav} setActiveNav={setActiveNav} badge="1" />
-      <NavButton id="profile" icon={UserCircle2} label="Profil" activeNav={activeNav} setActiveNav={setActiveNav} />
+      <NavButton id="home" icon={Home} label="Acasă" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} isBlue={true} />
+      <NavButton id="reels" icon={PlaySquare} label="Reels" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} />
+      <NavButton id="friends" icon={Users} label="Prieteni" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} />
+      <NavButton id="notifications" icon={Bell} label="Notificări" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} badge="1" />
+      <NavButton id="profile" icon={UserCircle2} label="Profil" activeNav={activeNav} setActiveNav={setActiveNav} onNavigate={onNavigate} />
+    </div>
+  );
+}
+
+function UtilityPanel({
+  kind,
+  searchQuery,
+  onSearchChange,
+  onMenuAction,
+  onClose,
+}: {
+  kind: null | 'menu' | 'search' | 'messages';
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  onMenuAction: (action: 'saved' | 'stories' | 'marketplace' | 'events') => void;
+  onClose: () => void;
+}) {
+  if (!kind) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[85] bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="mx-auto mt-16 w-[min(92vw,560px)] rounded-[24px] bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4">
+          <div className="text-[17px] font-bold text-[#050505]">
+            {kind === 'menu' ? 'Meniu rapid' : kind === 'search' ? 'Căutare' : 'Mesaje'}
+          </div>
+          <button onClick={onClose} className="rounded-full bg-gray-100 p-2 text-[#050505]">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {kind === 'menu' ? (
+          <div className="grid grid-cols-2 gap-3 p-4">
+            {[
+              { label: 'Salvate', action: 'saved' as const },
+              { label: 'Story-uri', action: 'stories' as const },
+              { label: 'Marketplace', action: 'marketplace' as const },
+              { label: 'Evenimente', action: 'events' as const },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => onMenuAction(item.action)}
+                className="rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-5 text-left text-[15px] font-semibold text-[#050505] hover:bg-[#EEF1F5]"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {kind === 'search' ? (
+          <div className="p-4">
+            <input
+              value={searchQuery}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Caută persoane, postări sau subiecte"
+              className="w-full rounded-2xl border border-gray-200 bg-[#F7F8FA] px-4 py-3 text-[15px] text-[#050505] outline-none"
+            />
+            <div className="mt-4 text-[14px] text-[#65676b]">
+              {searchQuery.trim() ? `Rezultatele pentru "${searchQuery}" vor fi disponibile în curând.` : 'Începe să tastezi pentru a căuta în platformă.'}
+            </div>
+          </div>
+        ) : null}
+
+        {kind === 'messages' ? (
+          <div className="p-4">
+            <div className="rounded-2xl border border-gray-200 bg-[#F7F8FA] p-4">
+              <div className="text-[15px] font-semibold text-[#050505]">Alexandra Rus</div>
+              <div className="mt-1 text-[14px] text-[#65676b]">Ți-a trimis un răspuns la discuția despre fact-checking.</div>
+            </div>
+            <div className="mt-3 rounded-2xl border border-gray-200 bg-[#F7F8FA] p-4">
+              <div className="text-[15px] font-semibold text-[#050505]">Echipa Dacface</div>
+              <div className="mt-1 text-[14px] text-[#65676b]">Funcția de mesagerie completă este în curs de extindere.</div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function FriendsView() {
+  const [suggestions, setSuggestions] = useState([
+    { id: 'friend-andrei', name: 'Andrei Popescu', meta: '12 prieteni comuni', avatar: 'https://i.pravatar.cc/150?u=friend-andrei' },
+    { id: 'friend-mara', name: 'Mara Ionescu', meta: '8 prieteni comuni', avatar: 'https://i.pravatar.cc/150?u=friend-mara' },
+  ]);
+
+  const handleRemoveSuggestion = (id: string) => {
+    setSuggestions((current) => current.filter((friend) => friend.id !== id));
+  };
+
+  const handleAcceptSuggestion = (id: string) => {
+    setSuggestions((current) =>
+      current.map((friend) =>
+        friend.id === id ? { ...friend, meta: 'Cerere trimisă' } : friend
+      )
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F0F2F5]">
+      <div className="sticky top-0 z-40 bg-white px-4 py-4 shadow-sm">
+        <h2 className="text-[24px] font-bold text-[#050505]">Prieteni</h2>
+        <p className="mt-1 text-[14px] text-[#65676b]">Sugestii și cereri, organizate ca în fluxul Facebook.</p>
+      </div>
+
+      <div className="space-y-3 p-3">
+        {suggestions.map((friend) => (
+          <div key={friend.id} className="rounded-[22px] bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <img src={friend.avatar} alt={friend.name} className="h-16 w-16 rounded-full object-cover" />
+              <div className="flex-1">
+                <div className="text-[16px] font-bold text-[#050505]">{friend.name}</div>
+                <div className="mt-1 text-[14px] text-[#65676b]">{friend.meta}</div>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleAcceptSuggestion(friend.id)}
+                className="rounded-xl bg-[#1877F2] px-4 py-3 text-[15px] font-semibold text-white"
+              >
+                {friend.meta === 'Cerere trimisă' ? 'Trimisă' : 'Adaugă'}
+              </button>
+              <button
+                onClick={() => handleRemoveSuggestion(friend.id)}
+                className="rounded-xl bg-[#E4E6EB] px-4 py-3 text-[15px] font-semibold text-[#050505]"
+              >
+                Elimină
+              </button>
+            </div>
+          </div>
+        ))}
+        {suggestions.length === 0 ? (
+          <div className="rounded-[22px] bg-white p-6 text-center shadow-sm">
+            <div className="text-[16px] font-semibold text-[#050505]">Ai epuizat sugestiile deocamdată.</div>
+            <div className="mt-1 text-[14px] text-[#65676b]">Revino mai târziu pentru recomandări noi.</div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function NotificationsView() {
+  const [notifications, setNotifications] = useState([
+    { id: 'notif-1', message: 'Alexandra Rus a comentat la postarea ta despre fact-checking.', time: 'Chiar acum', read: false },
+    { id: 'notif-2', message: 'Story-ul tău a fost văzut de 18 persoane în ultima oră.', time: 'Chiar acum', read: false },
+    { id: 'notif-3', message: 'Un nou Reel din zona ta începe să prindă tracțiune.', time: 'Chiar acum', read: false },
+  ]);
+
+  const markAllRead = () => {
+    setNotifications((current) => current.map((item) => ({ ...item, read: true })));
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F0F2F5]">
+      <div className="sticky top-0 z-40 bg-white px-4 py-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[24px] font-bold text-[#050505]">Notificări</h2>
+            <p className="mt-1 text-[14px] text-[#65676b]">Actualizări recente, într-un singur loc.</p>
+          </div>
+          <button
+            onClick={markAllRead}
+            className="rounded-full bg-[#E7F3FF] px-4 py-2 text-[14px] font-semibold text-[#1877F2]"
+          >
+            Marchează toate ca citite
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-3 p-3">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`rounded-[22px] p-4 shadow-sm ${notification.read ? 'bg-white' : 'bg-[#E7F3FF]'}`}
+          >
+            <div className="text-[15px] font-semibold text-[#050505]">{notification.message}</div>
+            <div className="mt-2 text-[13px] text-[#65676b]">{notification.read ? 'Citită' : notification.time}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -290,18 +547,22 @@ interface NavButtonProps {
   label: string;
   activeNav: string;
   setActiveNav: (value: string) => void;
+  onNavigate: () => void;
   badge?: string;
   isBlue?: boolean;
 }
 
-function NavButton({ id, icon: Icon, label, activeNav, setActiveNav, badge, isBlue }: NavButtonProps) {
+function NavButton({ id, icon: Icon, label, activeNav, setActiveNav, onNavigate, badge, isBlue }: NavButtonProps) {
   const isActive = activeNav === id;
   const colorClass = (isActive || isBlue && id === 'home' && isActive) ? 'text-[#1877F2]' : 'text-[#65676b]';
   const fillClass = isActive ? 'fill-current' : '';
 
   return (
     <button 
-      onClick={() => setActiveNav(id)} 
+      onClick={() => {
+        onNavigate();
+        setActiveNav(id);
+      }}
       className="flex flex-col items-center justify-center w-[64px] h-full relative"
     >
       <div className="relative mb-1">

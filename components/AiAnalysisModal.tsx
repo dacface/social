@@ -17,35 +17,64 @@ interface AnalysisResult {
 }
 
 export default function AiAnalysisModal({ isOpen, onClose, postId }: AiAnalysisModalProps) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      setLoading(true);
-      // Fetch analysis from backend endpoint
-      fetch(`/api/analyze?postId=${postId}`)
-        .then(res => res.json())
-        .then(data => {
-          setResult(data);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error(err);
-          // Fallback simulation if endpoint fails or isn't ready
-          setTimeout(() => {
-            setResult({
-              credibilityScore: 78,
-              bias: "Ușor înclinat spre stânga",
-              factCheckSummary: "Majoritatea afirmațiilor sunt susținute de surse oficiale, însă cifrele privind inflația au fost scoase din context.",
-              verdict: 'Suspect'
-            });
-            setLoading(false);
-          }, 1500);
-        });
-    } else {
+    if (!isOpen) {
       setResult(null);
+      setLoading(false);
+      return;
     }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    setLoading(true);
+
+    async function loadAnalysis() {
+      try {
+        const res = await fetch(`/api/analyze?postId=${postId}`, {
+          signal: controller.signal,
+        });
+        const data = await res.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        setResult(data);
+      } catch (err) {
+        if (cancelled || controller.signal.aborted) {
+          return;
+        }
+
+        console.error(err);
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        if (cancelled) {
+          return;
+        }
+
+        setResult({
+          credibilityScore: 78,
+          bias: "Ușor înclinat spre stânga",
+          factCheckSummary: "Majoritatea afirmațiilor sunt susținute de surse oficiale, însă cifrele privind inflația au fost scoase din context.",
+          verdict: 'Suspect'
+        });
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadAnalysis();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [isOpen, postId]);
 
   if (!isOpen) return null;

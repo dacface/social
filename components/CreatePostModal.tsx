@@ -51,6 +51,10 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const insertAtCursor = (value: string) => {
+    setText((current) => `${current}${current && !current.endsWith(' ') ? ' ' : ''}${value}`.trimStart());
+  };
+
   const handlePost = async () => {
     if (!canPost || isPosting) return;
     setIsPosting(true);
@@ -217,10 +221,18 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }: Crea
             >
               <ImagePlus className="w-6 h-6 text-[#45BD62]" />
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" disabled={isPosting}>
+            <button
+              onClick={() => insertAtCursor('#noutati')}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              disabled={isPosting}
+            >
               <Hash className="w-6 h-6 text-[#1877F2]" />
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" disabled={isPosting}>
+            <button
+              onClick={() => insertAtCursor('📍 București')}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              disabled={isPosting}
+            >
               <MapPin className="w-6 h-6 text-[#F5533D]" />
             </button>
           </div>

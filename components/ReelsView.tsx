@@ -13,15 +13,13 @@ interface ReelsViewProps {
 }
 
 export default function ReelsView({ reels, loading, error, onCreateReel }: ReelsViewProps) {
-  const [soundEnabled, setSoundEnabled] = useState(false);
-
-  useEffect(() => {
+  const [soundEnabled, setSoundEnabled] = useState(() => {
     if (typeof window === 'undefined') {
-      return;
+      return false;
     }
 
-    setSoundEnabled(window.localStorage.getItem('reels-sound-enabled') === 'true');
-  }, []);
+    return window.localStorage.getItem('reels-sound-enabled') === 'true';
+  });
 
   const handleEnableSound = () => {
     setSoundEnabled(true);
@@ -167,7 +165,7 @@ function ReelCard({
     }
 
     video.pause();
-  }, [isActive]);
+  }, [isActive, soundEnabled]);
 
   const scheduleControlsHide = () => {
     if (controlsTimeoutRef.current) {
