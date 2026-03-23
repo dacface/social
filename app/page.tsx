@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Menu, Plus, Search,
   Home, PlaySquare, Users, Bell, UserCircle2, X
@@ -42,6 +42,11 @@ export default function Feed() {
   const [reelsError, setReelsError] = useState('');
   const [utilityToast, setUtilityToast] = useState('');
   const [isChromeHidden, setIsChromeHidden] = useState(false);
+  const lastScrollYRef = useRef(0);
+  const scrollDeltaRef = useRef(0);
+  const lastDirectionRef = useRef<1 | -1 | 0>(0);
+  const rafRef = useRef<number | null>(null);
+  const isChromeHiddenRef = useRef(false);
 
   const handlePostCreated = (newPost: Post) => {
     setFeedError('');
@@ -159,32 +164,84 @@ export default function Feed() {
       return;
     }
 
-    let lastScrollY = window.scrollY;
+    const shouldAutoHideChrome =
+      activeNav === 'home' &&
+      activeShortcutView === null &&
+      activeUtilityPanel === null &&
+      activeStoryIndex === null;
 
-    const handleScroll = () => {
+    if (!shouldAutoHideChrome) {
+      setIsChromeHidden(false);
+      isChromeHiddenRef.current = false;
+      return;
+    }
+
+    lastScrollYRef.current = window.scrollY;
+    scrollDeltaRef.current = 0;
+    lastDirectionRef.current = 0;
+
+    const updateChromeVisibility = () => {
+      rafRef.current = null;
+
       const currentScrollY = window.scrollY;
-      const delta = currentScrollY - lastScrollY;
+      const delta = currentScrollY - lastScrollYRef.current;
+      lastScrollYRef.current = currentScrollY;
 
       if (currentScrollY <= 24) {
+        scrollDeltaRef.current = 0;
+        lastDirectionRef.current = 0;
+        if (isChromeHiddenRef.current) {
+          isChromeHiddenRef.current = false;
+          setIsChromeHidden(false);
+        }
+        return;
+      }
+
+      if (Math.abs(delta) < 2) {
+        return;
+      }
+
+      const direction: 1 | -1 = delta > 0 ? 1 : -1;
+
+      if (lastDirectionRef.current !== direction) {
+        scrollDeltaRef.current = delta;
+        lastDirectionRef.current = direction;
+      } else {
+        scrollDeltaRef.current += delta;
+      }
+
+      if (!isChromeHiddenRef.current && scrollDeltaRef.current >= 30) {
+        isChromeHiddenRef.current = true;
+        scrollDeltaRef.current = 0;
+        setIsChromeHidden(true);
+        return;
+      }
+
+      if (isChromeHiddenRef.current && scrollDeltaRef.current <= -18) {
+        isChromeHiddenRef.current = false;
+        scrollDeltaRef.current = 0;
         setIsChromeHidden(false);
-        lastScrollY = currentScrollY;
+      }
+    };
+
+    const handleScroll = () => {
+      if (rafRef.current !== null) {
         return;
       }
 
-      if (Math.abs(delta) < 8) {
-        return;
-      }
-
-      setIsChromeHidden(delta > 0);
-      lastScrollY = currentScrollY;
+      rafRef.current = window.requestAnimationFrame(updateChromeVisibility);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
-  }, []);
+  }, [activeNav, activeShortcutView, activeUtilityPanel, activeStoryIndex]);
 
   const handleMenuAction = (action: 'saved' | 'stories' | 'marketplace' | 'events') => {
     if (action === 'stories') {
@@ -230,12 +287,13 @@ export default function Feed() {
         ) : (
           <>
             {/* Top Navigation */}
-            <div
-              className={`sticky top-0 z-40 overflow-hidden bg-white transition-[max-height,transform,opacity] duration-300 ease-out ${
-                isChromeHidden ? 'pointer-events-none max-h-0 -translate-y-full opacity-0' : 'max-h-24 translate-y-0 opacity-100'
-              }`}
-            >
-              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+            <div className="sticky top-0 z-40 h-[57px] bg-white">
+              <div
+                className={`absolute inset-x-0 top-0 bg-white transition-transform duration-300 ease-out ${
+                  isChromeHidden ? 'pointer-events-none -translate-y-full' : 'translate-y-0'
+                }`}
+              >
+              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
                 {/* Left elements */}
                 <div className="flex items-center gap-3">
                   <button onClick={() => setActiveUtilityPanel('menu')} className="text-gray-900 group">
@@ -260,6 +318,7 @@ export default function Feed() {
                   />
                 </div>
               </div>
+              </div>
             </div>
 
             {/* Post Creator */}
@@ -281,7 +340,7 @@ export default function Feed() {
             </div>
 
             {/* Thick Separator */}
-            <div className="w-full h-1 bg-[#c9ccd1]" />
+            <div className="w-full h-[2px] bg-[#c9ccd1]" />
 
             {/* Stories Section */}
             <StoriesBar
@@ -292,7 +351,7 @@ export default function Feed() {
             />
 
             {/* Thick Separator */}
-            <div className="w-full h-1 bg-[#c9ccd1]" />
+            <div className="w-full h-[2px] bg-[#c9ccd1]" />
 
             {/* FEED LOOP */}
             <div className="flex flex-col">
@@ -308,7 +367,7 @@ export default function Feed() {
                 posts.map((post) => (
                   <React.Fragment key={post.id}>
                     <FeedPost post={post} />
-                    <div className="w-full h-1 bg-[#c9ccd1]" />
+                    <div className="w-full h-[2px] bg-[#c9ccd1]" />
                   </React.Fragment>
                 ))
               ) : (
