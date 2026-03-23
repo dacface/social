@@ -310,6 +310,7 @@ export default function FeedPost({ post }: FeedPostProps) {
       ? `${post.caption.slice(0, 180).trimEnd()}...`
       : post.caption;
   const dominantReaction = getDominantReaction(post, likeCount, isLiked);
+  const hasMedia = Boolean(post.imageUrl || post.videoUrl);
 
   if (isHidden) {
     return (
@@ -426,7 +427,7 @@ export default function FeedPost({ post }: FeedPostProps) {
           </div>
         ) : null}
 
-        <div className="px-4 py-3">
+        <div className={`px-4 ${hasMedia ? 'py-3' : 'pt-1 pb-3'}`}>
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-5 overflow-x-auto no-scrollbar text-[#65676b]">
               <InlineStatButton
@@ -615,7 +616,7 @@ function InstagramLoveIcon({ active, animate }: { active?: boolean; animate?: bo
   return (
     <svg
       viewBox="0 0 24 24"
-      className={`h-[22px] w-[22px] ${active ? 'text-[#ed4956]' : 'text-[#262626]'}`}
+      className={`h-[22px] w-[22px] ${active ? 'text-[#cf2338]' : 'text-[#262626]'}`}
       fill="none"
       aria-hidden="true"
       style={{
@@ -624,9 +625,9 @@ function InstagramLoveIcon({ active, animate }: { active?: boolean; animate?: bo
       }}
     >
       <path
-        d="M16.79 3.61c-1.7 0-3.08.73-4.01 1.92-.93-1.19-2.31-1.92-4.01-1.92C5.79 3.61 3.5 5.95 3.5 8.86c0 1.77.69 3.39 2.17 4.92l7.11 7.31 7.11-7.31c1.48-1.53 2.11-3.15 2.11-4.92 0-2.91-2.29-5.25-5.21-5.25Z"
+        d="M12 18.45c-.64 0-1.2-.23-1.74-.73L6.8 14.48c-1.52-1.42-2.3-2.87-2.3-4.73 0-2.3 1.67-3.95 3.9-3.95 1.55 0 2.77.78 3.6 2.1.83-1.32 2.05-2.1 3.6-2.1 2.23 0 3.9 1.65 3.9 3.95 0 1.86-.78 3.31-2.3 4.73l-3.46 3.24c-.54.5-1.1.73-1.74.73Z"
         stroke="currentColor"
-        strokeWidth="1.85"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill={active ? 'currentColor' : 'none'}
@@ -649,13 +650,41 @@ function FacebookCommentIcon() {
   );
 }
 
-function FacebookShareIcon({ className = 'h-[22px] w-[22px]' }: { className?: string }) {
+function FacebookShareIcon({ className = 'h-[24px] w-[24px]' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={`${className} text-[#65676b]`} fill="none" aria-hidden="true">
       <path
-        d="M13.2 4.8 21 10l-7.8 5.2V12.3c-4.7-.12-7.5 1.82-9.2 5.6.05-6.2 3.5-9.7 9.2-10V4.8Z"
+        d="M4.9 6.7H19.1"
         stroke="currentColor"
-        strokeWidth="1.55"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.2 6.9 10.55 12.15"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18.8 7 13.2 19"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.55 12.15 13.2 19"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10.55 12.15 18.2 7.45"
+        stroke="currentColor"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
