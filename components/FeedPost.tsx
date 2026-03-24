@@ -51,7 +51,6 @@ export default function FeedPost({ post }: FeedPostProps) {
   const [isPostMenuOpen, setIsPostMenuOpen] = useState(false);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
-  const [isFullTextExpanded, setIsFullTextExpanded] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [isCommentComposerOpen, setIsCommentComposerOpen] = useState(false);
@@ -322,10 +321,6 @@ export default function FeedPost({ post }: FeedPostProps) {
     showToast('Comentariul a fost adăugat.');
   };
 
-  const collapsedCaption =
-    post.hasMoreText && !isFullTextExpanded && post.caption.length > 180
-      ? `${post.caption.slice(0, 180).trimEnd()}...`
-      : post.caption;
   const hasMedia = Boolean(post.imageUrl || post.videoUrl);
   const postMomentumLabel = getPostMomentumLabel(likeCount, commentCount, shareCount);
 
@@ -392,17 +387,7 @@ export default function FeedPost({ post }: FeedPostProps) {
 
         {/* TEXT CONTENT */}
         <div className="px-4 pb-3">
-          <p className="text-[15px] font-normal tracking-normal text-[#050505] leading-[20px] whitespace-pre-wrap">
-            {collapsedCaption}
-            {post.hasMoreText && (
-              <button
-                onClick={() => setIsFullTextExpanded((value) => !value)}
-                className="pl-1 text-[15px] font-semibold tracking-normal text-[#65676b] hover:underline"
-              >
-                {isFullTextExpanded ? 'Vezi mai puțin' : 'Vezi mai mult'}
-              </button>
-            )}
-          </p>
+          <ExpandableCaption caption={post.caption} hasMedia={hasMedia} />
         </div>
 
         {/* MEDIA */}
@@ -475,7 +460,7 @@ export default function FeedPost({ post }: FeedPostProps) {
                 hideValue
               />
               <InlineStatButton
-                icon={<Sparkles className="h-[22px] w-[22px] text-[#65676b]" strokeWidth={1.9} />}
+                icon={<Sparkles className="h-[24px] w-[24px] text-[#65676b]" strokeWidth={1.9} />}
                 value={Math.max(1, Math.floor(likeCount / 8))}
                 label="Analiză AI"
                 onClick={() => setIsAiOpen(true)}
@@ -604,6 +589,130 @@ export default function FeedPost({ post }: FeedPostProps) {
   );
 }
 
+function ExpandableCaption({
+  caption,
+  hasMedia,
+}: {
+  caption: string;
+  hasMedia: boolean;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [collapsedCaption, setCollapsedCaption] = useState(caption);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const containerRef = useRef<HTMLParagraphElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const maxLines = hasMedia ? 2 : 6;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const measureCaption = () => {
+      const container = containerRef.current;
+      const measure = measureRef.current;
+
+      if (!container || !measure) {
+        return;
+      }
+
+      const width = container.clientWidth;
+
+      if (!width) {
+        return;
+      }
+
+      const computedStyle = window.getComputedStyle(container);
+      const lineHeight = parseFloat(computedStyle.lineHeight);
+
+      if (!lineHeight) {
+        return;
+      }
+
+      measure.style.width = `${width}px`;
+      measure.style.fontFamily = computedStyle.fontFamily;
+      measure.style.fontSize = computedStyle.fontSize;
+      measure.style.fontWeight = computedStyle.fontWeight;
+      measure.style.letterSpacing = computedStyle.letterSpacing;
+      measure.style.lineHeight = computedStyle.lineHeight;
+      measure.style.whiteSpace = computedStyle.whiteSpace;
+
+      const maxHeight = lineHeight * maxLines;
+      measure.textContent = caption;
+
+      if (measure.scrollHeight <= maxHeight + 1) {
+        setCollapsedCaption(caption);
+        setIsTruncated(false);
+        return;
+      }
+
+      let low = 0;
+      let high = caption.length;
+      let bestFit = '';
+
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        const candidate = caption.slice(0, middle).trimEnd();
+        measure.textContent = `${candidate}... Vezi mai mult`;
+
+        if (measure.scrollHeight <= maxHeight + 1) {
+          bestFit = candidate;
+          low = middle + 1;
+        } else {
+          high = middle - 1;
+        }
+      }
+
+      setCollapsedCaption(bestFit);
+      setIsTruncated(true);
+    };
+
+    measureCaption();
+
+    const container = containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      measureCaption();
+    });
+
+    resizeObserver.observe(container);
+    window.addEventListener('resize', measureCaption);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', measureCaption);
+    };
+  }, [caption, maxLines]);
+
+  return (
+    <>
+      <p
+        ref={containerRef}
+        className="text-[15px] font-normal tracking-normal text-[#050505] leading-[20px] whitespace-pre-wrap break-words"
+      >
+        {isExpanded || !isTruncated ? caption : `${collapsedCaption}... `}
+        {isTruncated ? (
+          <button
+            onClick={() => setIsExpanded((value) => !value)}
+            className="text-[15px] font-semibold tracking-normal text-[#65676b] hover:underline"
+          >
+            {isExpanded ? 'Vezi mai puțin' : 'Vezi mai mult'}
+          </button>
+        ) : null}
+      </p>
+      <div
+        ref={measureRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed left-0 top-0 -z-10 invisible break-words whitespace-pre-wrap text-[15px] font-normal tracking-normal leading-[20px]"
+      />
+    </>
+  );
+}
+
 function getPostMomentumLabel(likes: number, comments: number, shares: number) {
   const score = likes + comments * 3 + shares * 5;
 
@@ -674,7 +783,7 @@ function InstagramLoveIcon({ active, animate }: { active?: boolean; animate?: bo
   return (
     <svg
       viewBox="0 0 24 24"
-      className={`h-[24px] w-[24px] ${active ? 'text-[#cf2338]' : 'text-[#262626]'}`}
+      className={`h-[26px] w-[26px] ${active ? 'text-[#cf2338]' : 'text-[#262626]'}`}
       fill="none"
       aria-hidden="true"
       style={{
@@ -696,7 +805,7 @@ function InstagramLoveIcon({ active, animate }: { active?: boolean; animate?: bo
 
 function FacebookCommentIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[22px] w-[22px] text-[#65676b]" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-[24px] w-[24px] text-[#65676b]" fill="none" aria-hidden="true">
       <path
         d="M20 11.2c0 4-3.6 7.2-8 7.2-1 0-2-.2-2.9-.5L5 20l1.1-3.5A6.8 6.8 0 0 1 4 11.2C4 7.2 7.6 4 12 4s8 3.2 8 7.2Z"
         stroke="currentColor"
@@ -708,7 +817,7 @@ function FacebookCommentIcon() {
   );
 }
 
-function FacebookShareIcon({ className = 'h-[24px] w-[24px]' }: { className?: string }) {
+function FacebookShareIcon({ className = 'h-[26px] w-[26px]' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={`${className} text-[#65676b]`} fill="none" aria-hidden="true">
       <path
@@ -752,7 +861,7 @@ function FacebookShareIcon({ className = 'h-[24px] w-[24px]' }: { className?: st
 
 function DebateSearchIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[28px] w-[28px]" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-[30px] w-[30px]" fill="none" aria-hidden="true">
       <path
         d="M4.6 13.2a7.4 7.4 0 0 1 14.8 0"
         stroke="#ff3b75"
