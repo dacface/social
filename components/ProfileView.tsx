@@ -1,301 +1,455 @@
 "use client";
 
-import React, { useState } from 'react';
-import { 
-  UserPlus, MessageCircle, Scale, Sparkles, MapPin, Calendar, Link as LinkIcon, Briefcase, X
-} from 'lucide-react';
-import FeedPost, { Post } from './FeedPost';
-import DezbatereModal from './DezbatereModal';
-import AiAnalysisModal from './AiAnalysisModal';
+import React, { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Bookmark,
+  Briefcase,
+  Calendar,
+  Link as LinkIcon,
+  MapPin,
+  MessageCircle,
+  X,
+} from "lucide-react";
+
+import FeedPost, { type Post } from "./FeedPost";
+import AiAnalysisModal from "./AiAnalysisModal";
+import DezbatereModal from "./DezbatereModal";
+import CoverPickerModal from "./profile/CoverPickerModal";
+import EmptyProfileState from "./profile/EmptyProfileState";
+import LoadingSkeletonProfile from "./profile/LoadingSkeletonProfile";
+import ProfileHero from "./profile/ProfileHero";
+import ProfilePostGrid from "./profile/ProfilePostGrid";
+import StickyProfileTabs from "./profile/StickyProfileTabs";
+import {
+  PROFILE_COVER_TEMPLATES,
+  getProfileCoverById,
+  getRecommendedProfileCovers,
+} from "@/lib/profileCovers";
+
+const PROFILE_STORAGE_KEY = "profile-view-cover-id";
+const PROFILE_FAVORITES_STORAGE_KEY = "profile-view-cover-favorites";
+
+function getInitialStoredCoverId() {
+  if (typeof window === "undefined") {
+    return "mesh-lagoon";
+  }
+
+  const storedCoverId = window.localStorage.getItem(PROFILE_STORAGE_KEY);
+  return storedCoverId && getProfileCoverById(storedCoverId) ? storedCoverId : "mesh-lagoon";
+}
+
+function getInitialFavoriteCoverIds() {
+  if (typeof window === "undefined") {
+    return [] as string[];
+  }
+
+  const storedFavorites = window.localStorage.getItem(PROFILE_FAVORITES_STORAGE_KEY);
+
+  if (!storedFavorites) {
+    return [] as string[];
+  }
+
+  try {
+    const parsed = JSON.parse(storedFavorites);
+    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
+  } catch {
+    return [] as string[];
+  }
+}
 
 const MOCK_USER = {
-  id: 'u123',
-  name: 'Alexandru Marin',
+  id: "u123",
+  name: "Alexandru Marin",
+  username: "alexmarin",
   isVerified: true,
-  avatar: 'https://i.pravatar.cc/150?u=alex',
-  coverImage: 'https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?q=80&w=800&auto=format&fit=crop',
-  bio: 'Antreprenor & pasionat de tehnologie. Cred în libertatea de exprimare și piețe libere. 🌐',
-  location: 'București, România',
-  joinDate: 'Membru din sept. 2024',
-  website: 'alexmarin.ro',
-  work: 'Fondator la TechStart',
-  followers: 1240,
-  following: 342,
-  postsCount: 56,
-  posts: [
-    {
-      id: 'p1',
-      authorName: 'Alexandru Marin',
-      authorAvatar: 'https://i.pravatar.cc/150?u=alex',
-      isVerified: true,
-      time: '2h',
-      caption: 'Inteligența artificială nu va înlocui oamenii, ci oamenii care folosesc inteligența artificială îi vor înlocui pe cei care nu o folosesc. Trebuie să ne adaptăm rapid.',
-      hasMoreText: false,
-      likes: 245,
-      likesText: '245',
-      comments: 42,
-      shares: 12,
-      imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop'
-    },
-    {
-      id: 'p2',
-      authorName: 'Alexandru Marin',
-      authorAvatar: 'https://i.pravatar.cc/150?u=alex',
-      isVerified: true,
-      time: '1 zi',
-      caption: 'Am participat ieri la un eveniment excelent despre viitorul e-commerce-ului.',
-      hasMoreText: true,
-      likes: 89,
-      likesText: '89',
-      comments: 14,
-      shares: 3,
-    }
-  ] as Post[]
+  avatar: "https://i.pravatar.cc/300?u=alex-premium",
+  bio: "Construiesc produse digitale, documentez idei de business și transform profilul într-un spațiu editorial cu ritm, claritate și identitate.",
+  location: "București, România",
+  joinDate: "Membru din sept. 2024",
+  website: "alexmarin.ro",
+  work: "Fondator la TechStart Studio",
+  followers: "124K",
+  following: "342",
+  postsCount: "56",
+  likesCount: "2.4M",
+  tags: ["creator", "business", "travel", "minimal"],
+  badges: ["Top Voice", "Verified Creator"],
 };
 
+const PROFILE_POSTS: Post[] = [
+  {
+    id: "p1",
+    authorName: MOCK_USER.name,
+    authorAvatar: MOCK_USER.avatar,
+    isVerified: true,
+    time: "2h",
+    caption:
+      "Când construiești un produs social, profilul nu este o simplă pagină de prezentare. Este spațiul în care încrederea, stilul și recurența de engagement trebuie să se vadă instant, chiar din primul scroll.",
+    likes: 245,
+    comments: 42,
+    shares: 12,
+    imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop",
+  },
+  {
+    id: "p2",
+    authorName: MOCK_USER.name,
+    authorAvatar: MOCK_USER.avatar,
+    isVerified: true,
+    time: "ieri",
+    caption:
+      "Am testat mai multe ritmuri de publicare și cel mai bun engagement a venit când feed-ul, reel-urile și profilul au avut aceeași identitate vizuală. Coerența bate zgomotul.",
+    likes: 129,
+    comments: 19,
+    shares: 7,
+  },
+];
+
+const PROFILE_REELS: Post[] = [
+  {
+    id: "r1",
+    type: "reel",
+    authorName: MOCK_USER.name,
+    authorAvatar: MOCK_USER.avatar,
+    isVerified: true,
+    time: "3 zile",
+    caption: "Un recap din culisele ultimei campanii video, gândită pentru retenție și shareability.",
+    likes: 412,
+    comments: 58,
+    shares: 26,
+    videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+  },
+];
+
+const PROFILE_MEDIA = [
+  {
+    id: "m1",
+    title: "Lisabona notes",
+    subtitle: "Album editorial",
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=900&auto=format&fit=crop",
+  },
+  {
+    id: "m2",
+    title: "Studio morning",
+    subtitle: "Behind the scenes",
+    imageUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=900&auto=format&fit=crop",
+  },
+  {
+    id: "m3",
+    title: "Campaign frames",
+    subtitle: "Creator drop",
+    imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=900&auto=format&fit=crop",
+  },
+  {
+    id: "m4",
+    title: "Blue hour",
+    subtitle: "City diary",
+    imageUrl: "https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=900&auto=format&fit=crop",
+  },
+  {
+    id: "m5",
+    title: "Product table",
+    subtitle: "Editorial stills",
+    imageUrl: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=900&auto=format&fit=crop",
+  },
+];
+
+const PROFILE_HIGHLIGHTS = [
+  {
+    id: "h1",
+    title: "Highlights 2026",
+    subtitle: "Saved moments",
+    imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=900&auto=format&fit=crop",
+  },
+  {
+    id: "h2",
+    title: "Brand edits",
+    subtitle: "Collections",
+    imageUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=900&auto=format&fit=crop",
+  },
+];
+
+const PROFILE_TABS = [
+  { id: "posts", label: "Posts" },
+  { id: "reels", label: "Reels" },
+  { id: "media", label: "Media" },
+  { id: "about", label: "About" },
+  { id: "saved", label: "Saved" },
+];
+
 export default function ProfileView() {
-  const [activeTab, setActiveTab] = useState('postari');
-  const [isFollowed, setIsFollowed] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts");
+  const [isFollowing, setIsFollowing] = useState(false);
   const [isDezbatereOpen, setIsDezbatereOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
-  const [messageDraft, setMessageDraft] = useState('');
-  const [messageStatus, setMessageStatus] = useState('');
-  const [statsSheet, setStatsSheet] = useState<null | 'followers' | 'following' | 'posts'>(null);
+  const [statsSheet, setStatsSheet] = useState<null | "followers" | "following" | "posts" | "likes">(null);
+  const [isCoverPickerOpen, setIsCoverPickerOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [messageDraft, setMessageDraft] = useState("");
+  const [messageStatus, setMessageStatus] = useState("");
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState(MOCK_USER.avatar);
+  const [selectedCoverId, setSelectedCoverId] = useState(getInitialStoredCoverId);
+  const [previewCoverId, setPreviewCoverId] = useState(getInitialStoredCoverId);
+  const [favoriteCoverIds, setFavoriteCoverIds] = useState<string[]>(getInitialFavoriteCoverIds);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const profilePhotos = Array.from({ length: 9 }).map((_, idx) => `https://images.unsplash.com/photo-15507${idx}1827-4bd374c?q=80&w=800&auto=format&fit=crop`);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsLoadingProfile(false);
+    }, 650);
 
-  const profileVideos: Post[] = [
-    {
-      id: 'v1',
-      type: 'reel',
-      authorName: MOCK_USER.name,
-      authorAvatar: MOCK_USER.avatar,
-      isVerified: true,
-      time: '3 zile',
-      caption: 'Un scurt tur din culisele ultimului eveniment la care am participat.',
-      hasMoreText: false,
-      likes: 118,
-      likesText: '118',
-      comments: 16,
-      shares: 5,
-      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    },
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      window.requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const activeCover = useMemo(
+    () => getProfileCoverById(previewCoverId) ?? PROFILE_COVER_TEMPLATES[0],
+    [previewCoverId],
+  );
+
+  const recommendedCovers = useMemo(
+    () => getRecommendedProfileCovers(MOCK_USER.tags),
+    [],
+  );
+
+  const recommendedIds = useMemo(
+    () => recommendedCovers.map((cover) => cover.id),
+    [recommendedCovers],
+  );
+
+  const stats = [
+    { id: "followers", label: "Followers", value: MOCK_USER.followers, tone: "accent" as const },
+    { id: "following", label: "Following", value: MOCK_USER.following },
+    { id: "posts", label: "Posts", value: MOCK_USER.postsCount },
+    { id: "likes", label: "Likes", value: MOCK_USER.likesCount },
   ];
 
   const handleFollow = () => {
-    setIsFollowed(!isFollowed);
-    // Mock track event
-    if (!isFollowed) {
-      fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'USER_FOLLOW', userId: MOCK_USER.id, timestamp: new Date().toISOString() })
-      }).catch(() => {});
-    }
+    setIsFollowing((current) => !current);
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "USER_FOLLOW", userId: MOCK_USER.id, timestamp: new Date().toISOString() }),
+    }).catch(() => {});
   };
 
   const handleSendMessage = () => {
-    const nextMessage = messageDraft.trim();
-
-    if (!nextMessage) {
+    if (!messageDraft.trim()) {
       return;
     }
 
-    fetch('/api/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'USER_MESSAGE', userId: MOCK_USER.id, text: nextMessage, timestamp: new Date().toISOString() })
-    }).catch(() => {});
-
-    setMessageStatus('Mesaj trimis.');
-    setMessageDraft('');
-    setActiveTab('despre');
+    setMessageStatus("Mesaj trimis.");
+    setMessageDraft("");
   };
 
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setAvatarUrl(objectUrl);
+    setMessageStatus("Avatar actualizat local.");
+    event.target.value = "";
+  };
+
+  const handleCoverPreview = (coverId: string) => {
+    setPreviewCoverId(coverId);
+  };
+
+  const handleCoverSave = (coverId: string) => {
+    setSelectedCoverId(coverId);
+    setPreviewCoverId(coverId);
+    window.localStorage.setItem(PROFILE_STORAGE_KEY, coverId);
+    setIsCoverPickerOpen(false);
+    setIsEditSheetOpen(false);
+  };
+
+  const handleCoverClose = () => {
+    setPreviewCoverId(selectedCoverId);
+    setIsCoverPickerOpen(false);
+  };
+
+  const toggleFavoriteCover = (coverId: string) => {
+    setFavoriteCoverIds((current) => {
+      const next = current.includes(coverId) ? current.filter((id) => id !== coverId) : [...current, coverId];
+      window.localStorage.setItem(PROFILE_FAVORITES_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  if (isLoadingProfile) {
+    return <LoadingSkeletonProfile />;
+  }
+
   return (
-    <div className="w-full bg-[#c9ccd1] min-h-screen">
-      <div className="bg-white pb-3">
-        {/* Cover Section */}
-        <div className="relative w-full h-[220px] bg-gray-200">
-          <img 
-            src={MOCK_USER.coverImage} 
-            alt="Cover" 
-            className="w-full h-full object-cover rounded-b-lg"
-          />
-          {/* Avatar Overlay */}
-          <div className="absolute -bottom-[60px] left-1/2 -translate-x-1/2 flex items-center justify-center">
-            <div className={`w-[160px] h-[160px] rounded-full p-[4px] bg-white ${MOCK_USER.isVerified ? 'border-[#1877F2] border-2 ring-4 ring-white' : ''}`}>
-              <img 
-                src={MOCK_USER.avatar} 
-                alt={MOCK_USER.name} 
-                className="w-full h-full object-cover rounded-full border border-gray-100"
+    <div className="min-h-screen bg-[linear-gradient(180deg,#eef3f8_0%,#f5f7fb_26%,#f8fafc_100%)]">
+      <ProfileHero
+        user={{
+          name: MOCK_USER.name,
+          username: MOCK_USER.username,
+          avatar: avatarUrl,
+          bio: MOCK_USER.bio,
+          location: MOCK_USER.location,
+          website: MOCK_USER.website,
+          tags: MOCK_USER.tags,
+          badges: MOCK_USER.badges,
+          isVerified: MOCK_USER.isVerified,
+        }}
+        cover={activeCover}
+        scrollY={scrollY}
+        stats={stats}
+        isOwnProfile
+        isFollowing={isFollowing}
+        onFollow={handleFollow}
+        onMessage={() => startTransition(() => setActiveTab("about"))}
+        onMore={() => setIsAiOpen(true)}
+        onEdit={() => setIsEditSheetOpen(true)}
+        onEditAvatar={() => avatarInputRef.current?.click()}
+        onChangeCover={() => setIsCoverPickerOpen(true)}
+        onSelectStat={(id) => setStatsSheet(id as "followers" | "following" | "posts" | "likes")}
+      />
+
+      <div className="px-4 pb-24 pt-4">
+        <StickyProfileTabs
+          tabs={PROFILE_TABS}
+          activeTab={activeTab}
+          onChange={(tabId) => {
+            startTransition(() => {
+              setActiveTab(tabId);
+            });
+          }}
+        />
+
+        <div className="mt-3 flex flex-col gap-3">
+          {activeTab === "posts" ? (
+            PROFILE_POSTS.map((post) => (
+              <div key={post.id} className="overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+                <FeedPost post={{ ...post, authorAvatar: avatarUrl }} />
+              </div>
+            ))
+          ) : null}
+
+          {activeTab === "reels" ? (
+            PROFILE_REELS.map((post) => (
+              <div key={post.id} className="overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+                <FeedPost post={{ ...post, authorAvatar: avatarUrl }} />
+              </div>
+            ))
+          ) : null}
+
+          {activeTab === "media" ? (
+            <ProfilePostGrid
+              items={PROFILE_MEDIA}
+              onSelect={(item) => {
+                setActivePhoto(item.imageUrl);
+              }}
+            />
+          ) : null}
+
+          {activeTab === "saved" ? (
+            PROFILE_HIGHLIGHTS.length > 0 ? (
+              <ProfilePostGrid items={PROFILE_HIGHLIGHTS} onSelect={(item) => setActivePhoto(item.imageUrl)} />
+            ) : (
+              <EmptyProfileState
+                title="Nimic salvat încă"
+                description="Colecțiile și highlight-urile tale apar aici imediat ce începi să salvezi momente și postări."
+                actionLabel="Vezi cover-urile"
+                onAction={() => setIsCoverPickerOpen(true)}
               />
-              {MOCK_USER.isVerified && (
-                <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  <VerifiedBadge />
+            )
+          ) : null}
+
+          {activeTab === "about" ? (
+            <div className="rounded-[30px] border border-white/70 bg-white/92 p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+              <div className="text-[22px] font-[720] tracking-[-0.05em] text-[#111827]">About</div>
+              <div className="mt-5 space-y-4">
+                <AboutRow icon={<Briefcase className="h-5 w-5" />} title="Rol" value={MOCK_USER.work} />
+                <AboutRow icon={<MapPin className="h-5 w-5" />} title="Locație" value={MOCK_USER.location} />
+                <AboutRow icon={<LinkIcon className="h-5 w-5" />} title="Link" value={MOCK_USER.website} accent />
+                <AboutRow icon={<Calendar className="h-5 w-5" />} title="Joined" value={MOCK_USER.joinDate} />
+              </div>
+
+              <div className="mt-6 rounded-[26px] bg-[#f6f8fb] p-4">
+                <div className="flex items-center gap-2 text-[16px] font-semibold text-[#111827]">
+                  <MessageCircle className="h-4.5 w-4.5 text-[#1877F2]" />
+                  Mesaj rapid
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Spacing for avatar */}
-        <div className="h-[65px]"></div>
-
-        {/* Profile Info */}
-        <div className="px-4 flex flex-col items-center pb-2 text-center">
-          <h1 className="flex items-center gap-1.5 text-[29px] font-[700] tracking-[-0.045em] text-[#050505] leading-tight">
-            {MOCK_USER.name}
-          </h1>
-          <p className="mt-2 mb-3 max-w-[90%] whitespace-pre-wrap text-[15px] font-[460] tracking-[-0.015em] text-[#1b1f24] leading-[1.55]">
-            {MOCK_USER.bio}
-          </p>
-
-          <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[14px] text-[#65676b] font-medium">
-            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {MOCK_USER.location}</span>
-            <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {MOCK_USER.joinDate}</span>
-          </div>
-        </div>
-
-        {/* Stats Section */}
-        <div className="px-4 py-3 flex items-center justify-center gap-6 border-t border-b border-gray-100 mt-2 text-center">
-          <button onClick={() => setStatsSheet('followers')} className="flex flex-col cursor-pointer hover:opacity-80">
-            <span className="text-[16px] font-bold text-[#050505]">{MOCK_USER.followers}</span>
-            <span className="text-[13px] text-[#65676b] font-medium">Urmăritori</span>
-          </button>
-          <button onClick={() => setStatsSheet('following')} className="flex flex-col cursor-pointer hover:opacity-80">
-            <span className="text-[16px] font-bold text-[#050505]">{MOCK_USER.following}</span>
-            <span className="text-[13px] text-[#65676b] font-medium">Urmărește</span>
-          </button>
-          <button onClick={() => setStatsSheet('posts')} className="flex flex-col cursor-pointer hover:opacity-80">
-            <span className="text-[16px] font-bold text-[#050505]">{MOCK_USER.postsCount}</span>
-            <span className="text-[13px] text-[#65676b] font-medium">Postări</span>
-          </button>
-        </div>
-
-        {/* Action Buttons Row */}
-        <div className="px-4 py-3 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-          <button 
-            onClick={handleFollow}
-            className={`flex min-w-[110px] flex-1 items-center justify-center gap-1.5 rounded-2xl px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] transition-all shadow-sm
-              ${isFollowed 
-                ? 'bg-[#E9EDF2] text-[#050505] hover:bg-[#DDE3EA]' 
-                : 'bg-[#1877F2] text-white hover:bg-[#166FE5]'
-              }`}
-          >
-            <UserPlus className={`w-4 h-4 ${isFollowed ? 'text-gray-900' : 'text-white'}`} strokeWidth={2.5} />
-            {isFollowed ? 'Urmărești' : 'Urmărește'}
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('despre');
-              setMessageStatus('');
-            }}
-            className="flex min-w-[90px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] transition-all hover:bg-[#DDE3EA] shadow-sm"
-          >
-            <MessageCircle className="w-4 h-4 text-gray-900" strokeWidth={2.5} />
-            Mesaj
-          </button>
-
-          <button 
-            onClick={() => setIsDezbatereOpen(true)}
-            className="flex min-w-[100px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] transition-all hover:bg-[#DDE3EA] shadow-sm"
-          >
-            <Scale className="w-4 h-4 text-[#1877F2]" strokeWidth={2.5} />
-            Dezbatere
-          </button>
-
-          <button 
-            onClick={() => setIsAiOpen(true)}
-            className="flex min-w-[90px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[#E9EDF2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-[#050505] transition-all hover:bg-[#DDE3EA] shadow-sm"
-          >
-            <Sparkles className="w-4 h-4 text-[#A855F7]" strokeWidth={2.5} />
-            Analiză AI
-          </button>
-        </div>
-
-        {/* TABS */}
-        <div className="flex border-b border-gray-200 sticky top-0 bg-white z-20 px-2 overflow-x-auto no-scrollbar">
-          <TabButton id="postari" current={activeTab} set={setActiveTab} label="Postări" />
-          <TabButton id="despre" current={activeTab} set={setActiveTab} label="Despre" />
-          <TabButton id="fotografii" current={activeTab} set={setActiveTab} label="Fotografii" />
-          <TabButton id="video" current={activeTab} set={setActiveTab} label="Video" />
-        </div>
-      </div>
-
-      <div className="w-full h-2 bg-[#c9ccd1]" />
-
-      {/* TABS CONTENT */}
-      <div className="bg-[#c9ccd1] flex flex-col gap-2 relative">
-        {activeTab === 'postari' && (
-          MOCK_USER.posts.map((post) => (
-            <div className="bg-white" key={post.id}>
-              <FeedPost post={post} />
-              <div className="w-full h-2 bg-[#c9ccd1]" />
-            </div>
-          ))
-        )}
-
-        {activeTab === 'despre' && (
-          <div className="bg-white p-4">
-            <h2 className="mb-4 text-[19px] font-[680] tracking-[-0.035em] text-[#050505]">Informații</h2>
-            <div className="flex flex-col gap-4">
-              <InfoRow icon={<Briefcase />} text={`Lucrează la `} highlight={MOCK_USER.work} />
-              <InfoRow icon={<MapPin />} text={`Locuiește în `} highlight={MOCK_USER.location} />
-              <InfoRow icon={<LinkIcon />} text={``} highlight={MOCK_USER.website} isLink />
-              <InfoRow icon={<Calendar />} text={MOCK_USER.joinDate} />
-            </div>
-            <div className="mt-5 rounded-xl border border-gray-200 bg-[#F7F8FA] p-4">
-              <h3 className="text-[15px] font-[660] tracking-[-0.025em] text-[#050505]">Trimite un mesaj rapid</h3>
-              <textarea
-                value={messageDraft}
-                onChange={(event) => setMessageDraft(event.target.value)}
-                placeholder={`Scrie-i lui ${MOCK_USER.name}...`}
-                className="mt-3 min-h-[96px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-3 text-[14px] text-[#050505] outline-none"
-              />
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="text-[13px] font-medium text-[#65676b]">{messageStatus}</span>
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!messageDraft.trim()}
-                  className="rounded-2xl bg-[#1877F2] px-4 py-[11px] text-[14px] font-[640] tracking-[-0.02em] text-white disabled:bg-[#b9d4fb]"
-                >
-                  Trimite
-                </button>
+                <textarea
+                  value={messageDraft}
+                  onChange={(event) => setMessageDraft(event.target.value)}
+                  placeholder={`Scrie-i lui ${MOCK_USER.name}...`}
+                  className="mt-3 min-h-[112px] w-full resize-none rounded-[22px] border border-[#dde5ee] bg-white px-4 py-3 text-[15px] text-[#111827] outline-none"
+                />
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-[13px] text-[#6b7280]">{messageStatus}</span>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!messageDraft.trim()}
+                    className="rounded-full bg-[#111827] px-5 py-2.5 text-[14px] font-semibold text-white disabled:bg-[#cbd5e1]"
+                  >
+                    Trimite
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'fotografii' && (
-          <div className="bg-white p-2">
-            <div className="grid grid-cols-3 gap-1">
-              {profilePhotos.map((photoUrl, idx) => (
-                <button
-                  key={photoUrl}
-                  onClick={() => setActivePhoto(photoUrl)}
-                  className="aspect-square bg-gray-200 relative cursor-pointer hover:opacity-90 overflow-hidden"
-                >
-                  <img src={photoUrl} alt={`Fotografie ${idx + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'video' && (
-          profileVideos.map((videoPost) => (
-            <div className="bg-white" key={videoPost.id}>
-              <FeedPost post={videoPost} />
-              <div className="w-full h-2 bg-[#c9ccd1]" />
-            </div>
-          ))
-        )}
+          ) : null}
+        </div>
       </div>
 
-      {/* Modals for profile specific AI / Debate */}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleAvatarUpload}
+      />
+
+      {isCoverPickerOpen ? (
+        <CoverPickerModal
+          isOpen={isCoverPickerOpen}
+          covers={PROFILE_COVER_TEMPLATES}
+          currentCoverId={selectedCoverId}
+          favoriteIds={favoriteCoverIds}
+          recommendedIds={recommendedIds}
+          onClose={handleCoverClose}
+          onPreview={handleCoverPreview}
+          onSave={handleCoverSave}
+          onToggleFavorite={toggleFavoriteCover}
+        />
+      ) : null}
+
+      <EditProfileSheet
+        isOpen={isEditSheetOpen}
+        avatarUrl={avatarUrl}
+        coverTitle={activeCover.title}
+        onClose={() => setIsEditSheetOpen(false)}
+        onEditAvatar={() => avatarInputRef.current?.click()}
+        onChooseCover={() => {
+          setIsEditSheetOpen(false);
+          setIsCoverPickerOpen(true);
+        }}
+      />
+
       <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} postId={`profile_${MOCK_USER.id}`} />
       <AiAnalysisModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} postId={`profile_${MOCK_USER.id}`} />
       <ProfileStatsSheet kind={statsSheet} onClose={() => setStatsSheet(null)} />
@@ -314,11 +468,107 @@ export default function ProfileView() {
   );
 }
 
+function EditProfileSheet({
+  isOpen,
+  avatarUrl,
+  coverTitle,
+  onClose,
+  onEditAvatar,
+  onChooseCover,
+}: {
+  isOpen: boolean;
+  avatarUrl: string;
+  coverTitle: string;
+  onClose: () => void;
+  onEditAvatar: () => void;
+  onChooseCover: () => void;
+}) {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[94] bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="absolute inset-x-0 bottom-0 rounded-t-[32px] bg-[#f8fafc] px-4 pb-8 pt-4 shadow-[0_-24px_80px_rgba(15,23,42,0.2)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#d6dde8]" />
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[21px] font-[720] tracking-[-0.05em] text-[#111827]">Edit profile</div>
+            <div className="mt-1 text-[13px] text-[#6b7280]">Upload doar pentru avatar, cover doar din biblioteca presetată.</div>
+          </div>
+          <button onClick={onClose} className="rounded-full bg-white p-2 text-[#111827]">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-3 rounded-[26px] bg-white p-4 shadow-[0_16px_36px_rgba(15,23,42,0.07)]">
+            <img src={avatarUrl} alt="Avatar" className="h-16 w-16 rounded-full object-cover" />
+            <div className="flex-1">
+              <div className="text-[15px] font-semibold text-[#111827]">Profile photo</div>
+              <div className="mt-1 text-[13px] text-[#6b7280]">Poți schimba fotografia de profil prin upload local.</div>
+            </div>
+            <button onClick={onEditAvatar} className="rounded-full bg-[#111827] px-4 py-2 text-[13px] font-semibold text-white">
+              Upload
+            </button>
+          </div>
+
+          <div className="rounded-[26px] bg-white p-4 shadow-[0_16px_36px_rgba(15,23,42,0.07)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[15px] font-semibold text-[#111827]">Choose Cover</div>
+                <div className="mt-1 text-[13px] leading-6 text-[#6b7280]">
+                  Fără upload personal pentru cover. Selectezi doar din colecția abstractă presetată.
+                </div>
+              </div>
+              <Bookmark className="h-5 w-5 text-[#1877F2]" />
+            </div>
+            <div className="mt-4 rounded-[20px] bg-[#f6f8fb] px-4 py-3 text-[14px] text-[#344054]">
+              Cover curent: <span className="font-semibold">{coverTitle}</span>
+            </div>
+            <button
+              onClick={onChooseCover}
+              className="mt-4 w-full rounded-[20px] border border-[#dce4ef] bg-white px-4 py-3 text-[15px] font-semibold text-[#111827]"
+            >
+              Deschide galeria de covers
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AboutRow({
+  icon,
+  title,
+  value,
+  accent,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-[22px] bg-[#f8fafc] px-4 py-3">
+      <div className="text-[#98a2b3]">{icon}</div>
+      <div>
+        <div className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#98a2b3]">{title}</div>
+        <div className={`mt-1 text-[15px] ${accent ? "font-semibold text-[#1877F2]" : "text-[#111827]"}`}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
 function ProfileStatsSheet({
   kind,
   onClose,
 }: {
-  kind: null | 'followers' | 'following' | 'posts';
+  kind: null | "followers" | "following" | "posts" | "likes";
   onClose: () => void;
 }) {
   if (!kind) {
@@ -326,32 +576,25 @@ function ProfileStatsSheet({
   }
 
   const content =
-    kind === 'followers'
-      ? {
-          title: 'Urmăritori',
-          rows: ['Ana Preda', 'Darius Enache', 'Ioana Pavel'],
-        }
-      : kind === 'following'
-        ? {
-            title: 'Urmărește',
-            rows: ['Creator Economy România', 'TechStart Labs', 'Comunitatea Reels'],
-          }
-        : {
-            title: 'Postări',
-            rows: ['Postări publice: 56', 'Reel-uri: 8', 'Story-uri active: 2'],
-          };
+    kind === "followers"
+      ? { title: "Followers", rows: ["Ana Preda", "Darius Enache", "Ioana Pavel"] }
+      : kind === "following"
+        ? { title: "Following", rows: ["Creator Economy România", "TechStart Labs", "Comunitatea Reels"] }
+        : kind === "likes"
+          ? { title: "Likes", rows: ["2.4M aprecieri totale", "72% din media", "Top 8% engagement"] }
+          : { title: "Posts", rows: ["56 postări publice", "8 reel-uri", "3 drafturi programate"] };
 
   return (
     <div className="fixed inset-0 z-[88] bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white px-4 pb-6 pt-4 shadow-2xl"
+        className="absolute inset-x-0 bottom-0 rounded-t-[32px] bg-white px-4 pb-8 pt-4 shadow-[0_-24px_80px_rgba(15,23,42,0.2)]"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-gray-300" />
-        <div className="text-[19px] font-[680] tracking-[-0.035em] text-[#050505]">{content.title}</div>
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[#d6dde8]" />
+        <div className="text-[21px] font-[720] tracking-[-0.05em] text-[#111827]">{content.title}</div>
         <div className="mt-4 space-y-2">
           {content.rows.map((row) => (
-            <div key={row} className="rounded-2xl bg-[#F7F8FA] px-4 py-3 text-[15px] font-[620] tracking-[-0.02em] text-[#050505]">
+            <div key={row} className="rounded-[22px] bg-[#f6f8fb] px-4 py-3 text-[15px] font-semibold text-[#111827]">
               {row}
             </div>
           ))}
@@ -367,82 +610,17 @@ function ProfilePhotoViewer({ imageUrl, onClose }: { imageUrl: string | null; on
   }
 
   return (
-    <div className="fixed inset-0 z-[92] bg-black/95" onClick={onClose}>
+    <div className="fixed inset-0 z-[92] bg-black/94" onClick={onClose}>
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm"
+        className="absolute right-4 top-4 rounded-full bg-white/12 p-2 text-white backdrop-blur-sm"
         aria-label="Închide fotografia"
       >
         <X className="h-6 w-6" />
       </button>
       <div className="flex h-full w-full items-center justify-center p-4">
-        <img src={imageUrl} alt="Fotografie profil" className="max-h-full max-w-full object-contain" />
+        <img src={imageUrl} alt="Fotografie profil" className="max-h-full max-w-full rounded-[28px] object-contain shadow-[0_24px_80px_rgba(0,0,0,0.4)]" />
       </div>
-    </div>
-  );
-}
-
-function TabButton({
-  id,
-  current,
-  set,
-  label,
-}: {
-  id: string;
-  current: string;
-  set: (value: string) => void;
-  label: string;
-}) {
-  const isActive = current === id;
-  return (
-    <button 
-      onClick={() => set(id)}
-      className={`relative min-w-max px-4 py-3 text-[15px] font-[640] tracking-[-0.02em] transition-colors
-        ${isActive ? 'text-[#1877F2]' : 'text-[#65676b] hover:bg-gray-50 rounded-md'}
-      `}
-    >
-      {label}
-      {isActive && (
-        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1877F2] rounded-t-sm" />
-      )}
-    </button>
-  );
-}
-
-function InfoRow({
-  icon,
-  text,
-  highlight,
-  isLink,
-}: {
-  icon: React.ReactElement<{ className?: string }>;
-  text: string;
-  highlight?: string;
-  isLink?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3 text-[15px] text-[#050505]">
-      <div className="text-[#8c939d]">
-        {React.cloneElement(icon, { className: 'w-6 h-6 stroke-[1.5]' })}
-      </div>
-      <span>
-        {text}
-        {highlight && (
-          <span className={`font-semibold ${isLink ? 'text-[#1877F2] hover:underline cursor-pointer' : ''}`}>
-            {highlight}
-          </span>
-        )}
-      </span>
-    </div>
-  );
-}
-
-function VerifiedBadge() {
-  return (
-    <div className="w-[20px] h-[20px] bg-[#1877F2] rounded-full flex items-center justify-center">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
     </div>
   );
 }
