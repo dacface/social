@@ -11,12 +11,12 @@ export const theme = {
     success: '#22C55E',
   },
   typography: {
-    fontFamily: 'System', // 'Inter' ideally, loaded asynchronously in App
+    fontFamily: 'System',
     sizes: {
-      xs: 12,
+      xs: 13,
       sm: 14,
-      md: 16,
-      lg: 18,
+      md: 15,
+      lg: 17,
       xl: 24,
       xxl: 32,
     },

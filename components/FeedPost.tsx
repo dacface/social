@@ -392,12 +392,12 @@ export default function FeedPost({ post }: FeedPostProps) {
 
         {/* TEXT CONTENT */}
         <div className="px-4 pb-3">
-          <p className="text-[15px] tracking-[-0.006em] text-[#1a1d21] leading-[1.54] whitespace-pre-wrap">
+          <p className="text-[15px] font-normal tracking-normal text-[#050505] leading-[20px] whitespace-pre-wrap">
             {collapsedCaption}
             {post.hasMoreText && (
               <button
                 onClick={() => setIsFullTextExpanded((value) => !value)}
-                className="pl-1 text-[15px] font-semibold text-[#65676b] hover:underline"
+                className="pl-1 text-[15px] font-semibold tracking-normal text-[#65676b] hover:underline"
               >
                 {isFullTextExpanded ? 'Vezi mai puțin' : 'Vezi mai mult'}
               </button>
