@@ -250,35 +250,37 @@ export default function ProfileView() {
             <div className="rounded-[30px] bg-[linear-gradient(135deg,rgba(255,255,255,0.96)_0%,rgba(243,247,255,0.98)_52%,rgba(237,242,255,0.92)_100%)] px-5 py-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)] ring-1 ring-white/90">
               <div className="flex items-start gap-4">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h1
-                      className="font-[790]"
-                      style={{
-                        fontSize: "clamp(22px, 5.7vw, 32px)",
-                        lineHeight: 1.02,
-                        letterSpacing: "-0.05em",
-                        color: "#111111",
-                      }}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <h1
+                        className="truncate font-[790]"
+                        style={{
+                          fontSize: "clamp(22px, 5.7vw, 32px)",
+                          lineHeight: 1.02,
+                          letterSpacing: "-0.05em",
+                          color: "#111111",
+                        }}
+                      >
+                        {PROFILE.name}
+                      </h1>
+                      {PROFILE.isVerified ? <VerifiedBadge /> : null}
+                    </div>
+                    <button
+                      onClick={handleFollow}
+                      className={`inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
+                        isFollowed
+                          ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
+                          : "bg-[linear-gradient(135deg,#4c86ff_0%,#1f5eff_100%)] shadow-[0_18px_34px_rgba(37,99,235,0.28)]"
+                      }`}
                     >
-                      {PROFILE.name}
-                    </h1>
-                    {PROFILE.isVerified ? <VerifiedBadge /> : null}
+                      {isFollowed ? <Check className="h-4 w-4" strokeWidth={2.4} /> : <UserPlus className="h-4 w-4" strokeWidth={2.4} />}
+                      {isFollowed ? "Following" : "Follow"}
+                    </button>
                   </div>
                   <div className="mt-2 whitespace-nowrap text-[12px] font-[600] tracking-[-0.015em] text-[#65676b] sm:text-[13px]">
                     {profileMetricsLabel}
                   </div>
                 </div>
-                <button
-                  onClick={handleFollow}
-                  className={`-mt-4 mr-[-4px] inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
-                    isFollowed
-                      ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
-                      : "bg-[linear-gradient(135deg,#4c86ff_0%,#1f5eff_100%)] shadow-[0_18px_34px_rgba(37,99,235,0.28)]"
-                  }`}
-                >
-                  {isFollowed ? <Check className="h-4 w-4" strokeWidth={2.4} /> : <UserPlus className="h-4 w-4" strokeWidth={2.4} />}
-                  {isFollowed ? "Following" : "Follow"}
-                </button>
               </div>
             </div>
 
