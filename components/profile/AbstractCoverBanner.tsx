@@ -23,7 +23,7 @@ export default function AbstractCoverBanner({
 
   return (
     <div
-      className={`relative overflow-hidden ${compact ? "h-32 rounded-[24px]" : "h-[38svh] min-h-[320px] rounded-b-[34px]"} ${className}`}
+      className={`relative overflow-hidden ${compact ? "h-32 rounded-[24px]" : "h-[50svh] min-h-[460px]"} ${className}`}
     >
       <div className="absolute inset-0" style={backdropStyle} />
       <div
@@ -40,8 +40,12 @@ export default function AbstractCoverBanner({
           transform: `translateX(${tilt}px)`,
         }}
       />
-      <div className="absolute inset-x-5 bottom-4 h-20 rounded-[28px] bg-white/10 blur-2xl" />
-      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[rgba(248,250,252,0.92)] via-[rgba(248,250,252,0.18)] to-transparent" />
+      <div className="absolute inset-x-[8%] bottom-[4%] h-[120px] rounded-[52px] bg-white/10 blur-[48px]" />
+      <div className="absolute inset-x-[2%] bottom-[-8%] h-[220px] rounded-[72px] bg-[#f8fafc]/58 blur-[68px]" />
+      <div className="absolute inset-x-0 bottom-[-4%] h-[220px] bg-gradient-to-t from-[rgba(248,250,252,0.99)] via-[rgba(248,250,252,0.62)] via-[rgba(248,250,252,0.28)] to-transparent blur-[10px]" />
+      {!compact ? (
+        <div className="absolute inset-x-0 bottom-[-10%] h-[180px] bg-white/12 backdrop-blur-[42px]" />
+      ) : null}
     </div>
   );
 }
