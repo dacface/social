@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { startTransition, useDeferredValue, useEffect, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Briefcase,
   Calendar,
   Camera,
@@ -16,6 +17,7 @@ import {
   PlayCircle,
   Radio,
   Sparkles,
+  Tags,
   UserPlus,
   X,
 } from "lucide-react";
@@ -230,35 +232,27 @@ export default function ProfileView() {
             sizes="(max-width: 640px) 100vw, 600px"
             className="object-cover object-top"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.04)_32%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0.34)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.10)_0%,rgba(15,23,42,0.04)_30%,rgba(15,23,42,0.12)_74%,rgba(15,23,42,0.18)_100%)]" />
+          <button className="absolute left-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/18 text-white backdrop-blur-md transition-transform active:scale-[0.96]">
+            <ArrowLeft className="h-6 w-6" strokeWidth={2.4} />
+          </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="absolute right-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/14 px-3 py-2 text-[12px] font-[760] text-white backdrop-blur-md transition-transform active:scale-[0.98]"
+            className="absolute right-4 top-4 inline-flex h-11 items-center gap-2 rounded-full bg-white/18 px-4 py-2 text-[12px] font-[760] text-white backdrop-blur-md transition-transform active:scale-[0.98]"
           >
             <Camera className="h-4 w-4" strokeWidth={2.1} />
             Schimbă poza
           </button>
         </div>
 
-        <div className="relative -mt-12 px-0 pb-3">
-          <div className="overflow-hidden rounded-t-[34px] rounded-b-none bg-white px-5 pb-6 pt-5 shadow-[0_-10px_30px_rgba(15,23,42,0.04),0_18px_42px_rgba(15,23,42,0.08)] sm:rounded-[34px] sm:px-6">
-            <div className="relative rounded-[28px] border border-white/70 bg-white/72 p-4 shadow-[0_14px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-              <button
-                onClick={handleFollow}
-                className={`absolute right-0 top-0 inline-flex shrink-0 items-center gap-2 rounded-tr-[28px] rounded-bl-[24px] px-4 py-2.5 text-[13px] font-[760] text-white transition-transform active:scale-[0.98] ${
-                  isFollowed
-                    ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
-                    : "bg-[linear-gradient(135deg,#2f7dff_0%,#1858f2_100%)] shadow-[0_14px_30px_rgba(37,99,235,0.24)]"
-                }`}
-              >
-                {isFollowed ? <Check className="h-4 w-4" strokeWidth={2.4} /> : <UserPlus className="h-4 w-4" strokeWidth={2.4} />}
-                {isFollowed ? "Following" : "Follow"}
-              </button>
+        <div className="relative -mt-8 px-0 pb-3">
+          <div className="overflow-hidden rounded-t-[34px] rounded-b-none bg-[linear-gradient(180deg,#ffffff_0%,#f6f8ff_100%)] px-5 pb-6 pt-4 shadow-[0_-8px_26px_rgba(15,23,42,0.03),0_22px_44px_rgba(15,23,42,0.10)] sm:rounded-[34px] sm:px-6">
+            <div className="rounded-[30px] bg-[linear-gradient(135deg,rgba(255,255,255,0.96)_0%,rgba(243,247,255,0.98)_52%,rgba(237,242,255,0.92)_100%)] px-5 py-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)] ring-1 ring-white/90">
               <div className="flex items-start gap-4">
-                <div className="min-w-0 pr-[96px]">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <h1
-                      className="font-[790] text-[#111111]"
+                      className="font-[790]"
                       style={{
                         fontSize: "clamp(22px, 5.7vw, 32px)",
                         lineHeight: 1.02,
@@ -270,11 +264,29 @@ export default function ProfileView() {
                     </h1>
                     {PROFILE.isVerified ? <VerifiedBadge /> : null}
                   </div>
-                  <div className="mt-1 whitespace-nowrap text-[12px] font-[600] tracking-[-0.015em] text-[#65676b] sm:text-[13px]">
+                  <div className="mt-2 whitespace-nowrap text-[12px] font-[600] tracking-[-0.015em] text-[#65676b] sm:text-[13px]">
                     {profileMetricsLabel}
                   </div>
                 </div>
+                <button
+                  onClick={handleFollow}
+                  className={`mr-[-4px] inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-3 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
+                    isFollowed
+                      ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
+                      : "bg-[linear-gradient(135deg,#4c86ff_0%,#1f5eff_100%)] shadow-[0_18px_34px_rgba(37,99,235,0.28)]"
+                  }`}
+                >
+                  {isFollowed ? <Check className="h-4 w-4" strokeWidth={2.4} /> : <UserPlus className="h-4 w-4" strokeWidth={2.4} />}
+                  {isFollowed ? "Following" : "Follow"}
+                </button>
               </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-4 gap-3">
+              <QuickCard icon={<ImageIcon className="h-6 w-6 text-[#ff5d7a]" strokeWidth={2.2} />} label="Photos" glow="rgba(255,93,122,0.18)" />
+              <QuickCard icon={<PlayCircle className="h-6 w-6 text-[#2f7dff]" strokeWidth={2.2} />} label="Videos" glow="rgba(47,125,255,0.18)" />
+              <QuickCard icon={<Radio className="h-6 w-6 text-[#6d5efc]" strokeWidth={2.2} />} label="Stories" glow="rgba(109,94,252,0.18)" />
+              <QuickCard icon={<Tags className="h-6 w-6 text-[#f59e0b]" strokeWidth={2.2} />} label="Tags" glow="rgba(245,158,11,0.18)" />
             </div>
 
             <div className="mt-4 flex items-center gap-2 rounded-[18px] bg-[#f3f6fa] px-4 py-3 text-[14px] font-[620] text-[#334155]">
@@ -287,20 +299,22 @@ export default function ProfileView() {
               {PROFILE.headline}. {PROFILE.bio}
             </p>
 
-            <div className="mt-5 flex items-center gap-6 overflow-x-auto text-[15px] font-[650] text-[#111111] no-scrollbar">
-              <button className="shrink-0 border-b-2 border-[#ff4d6d] pb-2 text-[#ff4d6d]">194 photos</button>
-              <button className="shrink-0 pb-2 text-[#111111]">15 videos</button>
-              <button className="shrink-0 pb-2 text-[#111111]">9 stories</button>
-              <button className="shrink-0 pb-2 text-[#111111]">85 tags</button>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {PROFILE.badges.map((badge) => (
-                <span key={badge} className="rounded-full bg-[#f4f7fb] px-3 py-2 text-[12px] font-[760] text-[#334155]">
-                  {badge}
-                </span>
-              ))}
-            </div>
+            <button
+              onClick={() => startTransition(() => setActiveTab("despre"))}
+              className="mt-4 flex w-full items-center gap-3 rounded-[24px] bg-[linear-gradient(135deg,#0f172a_0%,#1e3a8a_100%)] px-4 py-4 text-left text-white shadow-[0_20px_36px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/14 backdrop-blur-sm">
+                <Radio className="h-5 w-5" strokeWidth={2.2} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-[800] uppercase tracking-[0.16em] text-white/64">Start a conversation</div>
+                <div className="mt-1 text-[16px] font-[760] tracking-[-0.03em] text-white">Trimite un mesaj premium</div>
+                <div className="mt-1 text-[13px] font-[600] text-white/72">Deschide direct zona de contact și scrie un mesaj clar.</div>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1d4ed8] shadow-[0_10px_20px_rgba(255,255,255,0.2)]">
+                <ChevronLeft className="h-5 w-5 rotate-180" strokeWidth={2.4} />
+              </div>
+            </button>
 
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[14px] font-[580] text-[#64748b]">
               <MetaItem icon={<MapPin className="h-4 w-4" />} text={PROFILE.location} />
@@ -503,6 +517,28 @@ function MetaItem({ icon, text }: { icon: React.ReactNode; text: string }) {
       <span className="text-[#94a3b8]">{icon}</span>
       <span>{text}</span>
     </div>
+  );
+}
+
+function QuickCard({
+  icon,
+  label,
+  glow,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  glow: string;
+}) {
+  return (
+    <button
+      className="relative overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,#ffffff_0%,#f7f9ff_100%)] px-3 py-5 text-center shadow-[0_16px_28px_rgba(15,23,42,0.06)] ring-1 ring-[#edf2fb] transition-transform active:scale-[0.98]"
+      style={{ boxShadow: `0 16px 28px rgba(15,23,42,0.06), inset 0 0 0 1px rgba(255,255,255,0.72), 0 0 34px ${glow}` }}
+    >
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+        {icon}
+      </div>
+      <div className="mt-4 text-[14px] font-[700] tracking-[-0.02em] text-[#222222]">{label}</div>
+    </button>
   );
 }
 
