@@ -11,8 +11,10 @@ import {
   ChevronLeft,
   Globe,
   Grid2x2,
+  Heart,
   Image as ImageIcon,
   MapPin,
+  MessageCircle,
   MoreHorizontal,
   PlayCircle,
   Radio,
@@ -69,24 +71,44 @@ const PROFILE = {
       title: "Profil",
       subtitle: "Fotografii de profil",
       image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500&auto=format&fit=crop",
+      photos: [
+        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1200&auto=format&fit=crop",
+      ],
     },
     {
       id: "h2",
       title: "Vacante",
       subtitle: "Amintiri magice",
       image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=500&auto=format&fit=crop",
+      photos: [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1493558103817-58b2924bce98?q=80&w=1200&auto=format&fit=crop",
+      ],
     },
     {
       id: "h3",
       title: "Momente",
       subtitle: "Momentele mele",
       image: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=500&auto=format&fit=crop",
+      photos: [
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop",
+      ],
     },
     {
       id: "h4",
       title: "Timeline",
       subtitle: "Cronologia mea",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=500&auto=format&fit=crop",
+      photos: [
+        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=1200&auto=format&fit=crop",
+      ],
     },
   ],
   photos: [
@@ -158,6 +180,8 @@ export default function ProfileView() {
   const [messageDraft, setMessageDraft] = useState("");
   const [messageStatus, setMessageStatus] = useState("");
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [activeHighlightIndex, setActiveHighlightIndex] = useState<number | null>(null);
+  const [activeHighlightPhotoIndex, setActiveHighlightPhotoIndex] = useState(0);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const [avatarSrc, setAvatarSrc] = useState(PROFILE.avatar);
   const [avatarObjectUrl, setAvatarObjectUrl] = useState<string | null>(null);
@@ -403,8 +427,15 @@ export default function ProfileView() {
           </div>
           <div className="mt-4 overflow-x-auto no-scrollbar">
             <div className="flex gap-3">
-              {PROFILE.highlights.map((highlight) => (
-                <button key={highlight.id} className="group w-[108px] shrink-0 text-left">
+              {PROFILE.highlights.map((highlight, index) => (
+                <button
+                  key={highlight.id}
+                  onClick={() => {
+                    setActiveHighlightIndex(index);
+                    setActiveHighlightPhotoIndex(0);
+                  }}
+                  className="group w-[108px] shrink-0 text-left"
+                >
                   <div className="relative h-[108px] w-[108px] overflow-hidden rounded-[32px] bg-[#dbe4f0] shadow-[0_14px_28px_rgba(15,23,42,0.08)]">
                     <Image src={highlight.image} alt={highlight.title} fill sizes="108px" className="object-cover transition duration-300 group-hover:scale-[1.04]" />
                     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/45 to-transparent" />
@@ -547,6 +578,27 @@ export default function ProfileView() {
         />
       ) : null}
 
+      {activeHighlightIndex !== null ? (
+        <HighlightViewer
+          highlight={PROFILE.highlights[activeHighlightIndex]}
+          activeIndex={activeHighlightPhotoIndex}
+          onClose={() => setActiveHighlightIndex(null)}
+          onSelect={setActiveHighlightPhotoIndex}
+          onPrevious={() =>
+            setActiveHighlightPhotoIndex((current) => {
+              const photos = PROFILE.highlights[activeHighlightIndex]?.photos ?? [];
+              return photos.length === 0 ? 0 : (current - 1 + photos.length) % photos.length;
+            })
+          }
+          onNext={() =>
+            setActiveHighlightPhotoIndex((current) => {
+              const photos = PROFILE.highlights[activeHighlightIndex]?.photos ?? [];
+              return photos.length === 0 ? 0 : (current + 1) % photos.length;
+            })
+          }
+        />
+      ) : null}
+
       <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} postId={defaultPostId} />
       <AiAnalysisModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} postId={defaultPostId} />
       <input
@@ -566,12 +618,25 @@ export default function ProfileView() {
             background-position: -200% 0;
           }
         }
+        @keyframes highlight-photo-enter {
+          0% {
+            opacity: 0;
+            transform: translateY(28px) scale(0.985);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
+        }
+        .highlight-photo-enter {
+          animation: highlight-photo-enter 320ms cubic-bezier(0.22, 1, 0.36, 1);
         }
       `}</style>
     </div>
@@ -707,6 +772,171 @@ function PhotoViewer({
         </button>
       </div>
     </div>
+  );
+}
+
+function HighlightViewer({
+  highlight,
+  activeIndex,
+  onClose,
+  onPrevious,
+  onNext,
+  onSelect,
+}: {
+  highlight: (typeof PROFILE.highlights)[number];
+  activeIndex: number;
+  onClose: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  onSelect: (index: number) => void;
+}) {
+  const photos = highlight.photos ?? [];
+  const activePhoto = photos[activeIndex] ?? photos[0] ?? highlight.image;
+  const backgroundPalette = ["#1f2937", "#0f172a", "#312e81", "#3f3f46", "#1f3a5f", "#3b2f2f"];
+  const viewerBackground = backgroundPalette[activeIndex % backgroundPalette.length];
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    setTouchStartY(event.touches[0]?.clientY ?? null);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartY === null) {
+      return;
+    }
+
+    const nextOffset = (event.touches[0]?.clientY ?? 0) - touchStartY;
+    setSwipeOffset(Math.min(Math.max(nextOffset, -120), 120));
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartY !== null && swipeOffset <= -70) {
+      onNext();
+    } else if (touchStartY !== null && swipeOffset >= 70) {
+      onPrevious();
+    }
+
+    setTouchStartY(null);
+    setSwipeOffset(0);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[95]" style={{ backgroundColor: viewerBackground }} onClick={onClose}>
+      <button
+        onClick={(event) => {
+          event.stopPropagation();
+          onClose();
+        }}
+        className="absolute right-4 top-4 z-20 rounded-full bg-white p-2.5 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]"
+        aria-label="Închide highlight"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      <div className="relative flex h-full w-full items-center justify-center" onClick={(event) => event.stopPropagation()}>
+        <button onClick={onPrevious} className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-3 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        <div
+          className="relative h-full w-full overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div
+            key={activePhoto}
+            className="highlight-photo-enter relative h-full w-full transition-transform duration-300 ease-out"
+            style={{
+              transform: `translateY(${swipeOffset}px) scale(${touchStartY !== null ? 0.985 : 1})`,
+            }}
+          >
+            <Image src={activePhoto} alt={`${highlight.title} ${activeIndex + 1}`} fill sizes="100vw" className="object-contain object-center" />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 px-4 pb-6 pt-20">
+            <div className="mb-4 flex items-center justify-between gap-3 text-[#0f172a]">
+              <div className="rounded-full bg-white px-3 py-1.5 text-[12px] font-[700] uppercase tracking-[0.14em] text-[#64748b] shadow-[0_8px_18px_rgba(15,23,42,0.08)]">
+                {activeIndex + 1} / {photos.length}
+              </div>
+            </div>
+            <div className="mb-4 grid grid-cols-4 gap-2">
+              <HighlightActionButton icon={<Heart className="h-4 w-4" strokeWidth={2.2} />} label="Ador" />
+              <HighlightActionButton icon={<MessageCircle className="h-4 w-4" strokeWidth={2.2} />} label="Comment" />
+              <HighlightActionButton icon={<FacebookShareIcon className="h-[20px] w-[20px]" />} label="Share" />
+              <HighlightActionButton icon={<MessengerIcon />} label="Trimite mesaj" />
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {photos.map((photo, index) => (
+                <button
+                  key={photo}
+                  onClick={() => onSelect(index)}
+                  className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-[18px] ring-2 transition-all ${
+                    index === activeIndex ? "ring-[#2563eb]" : "ring-transparent opacity-70"
+                  }`}
+                >
+                  <Image src={photo} alt={`${highlight.title} preview ${index + 1}`} fill sizes="64px" className="object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button onClick={onNext} className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-3 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
+          <ChevronLeft className="h-5 w-5 rotate-180" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HighlightActionButton({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      aria-label={label}
+      className="inline-flex h-11 w-full items-center justify-center rounded-full bg-white/12 text-white backdrop-blur-md transition-transform active:scale-[0.98]"
+    >
+      {icon}
+    </button>
+  );
+}
+
+function MessengerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] text-white" fill="none" aria-hidden="true">
+      <path
+        d="M12 3.8c-4.86 0-8.8 3.57-8.8 7.98 0 2.5 1.27 4.73 3.26 6.2v2.82l2.75-1.52c.9.25 1.84.38 2.79.38 4.86 0 8.8-3.57 8.8-7.98S16.86 3.8 12 3.8Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m8.45 13.1 2.32-2.46 2.2 1.82 2.58-2.73"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FacebookShareIcon({ className = "h-[20px] w-[20px]" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`${className} text-white`} fill="none" aria-hidden="true">
+      <path d="M4.9 6.7H19.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.2 6.9 10.55 12.15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18.8 7 13.2 19" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.55 12.15 13.2 19" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.55 12.15 18.2 7.45" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
