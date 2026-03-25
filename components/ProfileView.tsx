@@ -580,7 +580,15 @@ function MetaItem({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-[#94a3b8]">{icon}</span>
-      <span>{text}</span>
+      <span
+        className="whitespace-nowrap"
+        style={{
+          fontSize: "clamp(11px, 3.2vw, 14px)",
+          lineHeight: 1.2,
+        }}
+      >
+        {text}
+      </span>
     </div>
   );
 }
