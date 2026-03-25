@@ -270,7 +270,7 @@ export default function ProfileView() {
                 </div>
                 <button
                   onClick={handleFollow}
-                  className={`-mt-4 mr-[-4px] inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-3 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
+                  className={`-mt-4 mr-[-4px] inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
                     isFollowed
                       ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
                       : "bg-[linear-gradient(135deg,#4c86ff_0%,#1f5eff_100%)] shadow-[0_18px_34px_rgba(37,99,235,0.28)]"
