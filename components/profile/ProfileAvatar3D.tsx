@@ -24,23 +24,16 @@ export default function ProfileAvatar3D({
     <div className="relative w-full">
       <button
         onClick={editable ? onEditAvatar : undefined}
-        className={`group relative block w-full overflow-hidden transition-transform duration-300 ${editable ? "active:scale-[0.995]" : ""}`}
+        className={`group relative block w-full overflow-hidden ${editable ? "active:scale-[0.995]" : ""}`}
         aria-label={editable ? "Schimbă fotografia de profil" : `Fotografia de profil a lui ${name}`}
       >
-        <div
-          className="relative w-full overflow-hidden shadow-[0_30px_100px_rgba(15,23,42,0.24)]"
-          style={{
-            transform: `scale(${scale})`,
-          }}
-        >
-          <div
-            className="relative w-full overflow-hidden bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_18px_48px_rgba(15,23,42,0.16)]"
+        <div className="relative w-full overflow-hidden" style={{ transform: `scale(${scale})` }}>
+          <img
+            src={avatarUrl}
+            alt={name}
+            className="block h-full w-full object-cover object-center"
             style={{ height: avatarHeight }}
-          >
-            <img src={avatarUrl} alt={name} className="h-full w-full object-cover object-center transition-transform duration-700 group-active:scale-[1.02]" />
-            <div className="absolute inset-x-[18%] top-6 h-14 rounded-full bg-white/30 blur-2xl" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_34%_20%,rgba(255,255,255,0.26),transparent_18%),linear-gradient(180deg,transparent_46%,rgba(15,23,42,0.18)_100%)]" />
-          </div>
+          />
         </div>
 
         {editable ? (
