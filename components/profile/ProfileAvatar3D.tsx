@@ -39,10 +39,8 @@ export default function ProfileAvatar3D({
           >
             <img src={avatarUrl} alt={name} className="h-full w-full object-cover object-center transition-transform duration-700 group-active:scale-[1.02]" />
             <div className="absolute inset-x-[18%] top-6 h-14 rounded-full bg-white/30 blur-2xl" />
-            <div className="absolute inset-x-0 bottom-[-10%] h-[34%] bg-[linear-gradient(180deg,transparent_0%,rgba(248,250,252,0.26)_32%,rgba(248,250,252,0.7)_72%,rgba(248,250,252,0.98)_100%)] blur-[12px]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_34%_20%,rgba(255,255,255,0.26),transparent_18%),linear-gradient(180deg,transparent_46%,rgba(15,23,42,0.18)_100%)]" />
           </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-[-8%] h-[26%] bg-white/14 blur-[28px]" />
         </div>
 
         {editable ? (

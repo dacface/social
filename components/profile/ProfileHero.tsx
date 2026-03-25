@@ -46,7 +46,7 @@ export default function ProfileHero({
   return (
     <section className="relative">
       <div>
-        <div className="relative w-full overflow-x-hidden pb-6 pt-[29rem]">
+        <div className="relative w-full overflow-x-hidden pb-6 pt-[21.75rem] sm:pt-[29rem]">
           <div className="absolute inset-x-0 top-0">
             <ProfileAvatar3D
               name={user.name}
@@ -58,7 +58,7 @@ export default function ProfileHero({
             />
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-[21rem] h-[8.5rem] bg-[linear-gradient(180deg,rgba(248,250,252,0.02)_0%,rgba(248,250,252,0.24)_28%,rgba(248,250,252,0.68)_68%,rgba(248,250,252,0.96)_100%)] blur-[18px]" />
+          <div className="pointer-events-none absolute inset-x-0 top-[16.75rem] h-[4.25rem] bg-[linear-gradient(180deg,rgba(248,250,252,0.02)_0%,rgba(248,250,252,0.24)_28%,rgba(248,250,252,0.68)_68%,rgba(248,250,252,0.96)_100%)] blur-[12px] sm:top-[21rem] sm:h-[8.5rem] sm:blur-[18px]" />
 
           <div className="relative overflow-x-hidden px-4 text-center">
             <div className="flex items-center justify-center gap-2">
