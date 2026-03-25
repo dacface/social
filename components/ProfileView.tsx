@@ -128,6 +128,7 @@ const PROFILE = {
 type TabId = "postari" | "media" | "despre";
 
 export default function ProfileView() {
+  const defaultPostId = PROFILE.posts[0]?.id ?? PROFILE.id;
   const [activeTab, setActiveTab] = useState<TabId>("postari");
   const deferredTab = useDeferredValue(activeTab);
   const [isFollowed, setIsFollowed] = useState(false);
@@ -419,8 +420,8 @@ export default function ProfileView() {
         />
       ) : null}
 
-      <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} />
-      <AiAnalysisModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} />
+      <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} postId={defaultPostId} />
+      <AiAnalysisModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} postId={defaultPostId} />
 
       <style jsx global>{`
         @keyframes profile-shimmer {
