@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { startTransition, useDeferredValue, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ChevronsUp,
   Briefcase,
   Calendar,
   Camera,
@@ -628,6 +629,26 @@ export default function ProfileView() {
             transform: translateY(0) scale(1);
           }
         }
+        @keyframes swipe-up-hint-float {
+          0%,
+          100% {
+            transform: translateY(0);
+            opacity: 0.94;
+          }
+          50% {
+            transform: translateY(-6px);
+            opacity: 1;
+          }
+        }
+        @keyframes swipe-up-icon-bounce {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-4px);
+          }
+        }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -637,6 +658,14 @@ export default function ProfileView() {
         }
         .highlight-photo-enter {
           animation: highlight-photo-enter 320ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .swipe-up-hint {
+          animation: swipe-up-hint-float 1.8s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+        .swipe-up-icon {
+          animation: swipe-up-icon-bounce 1.1s ease-in-out infinite;
+          will-change: transform;
         }
       `}</style>
     </div>
@@ -796,60 +825,109 @@ function HighlightViewer({
   const viewerBackground = backgroundPalette[activeIndex % backgroundPalette.length];
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipePhase, setSwipePhase] = useState<"idle" | "commit-up" | "commit-down">("idle");
+  const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
+  const swipeDirection =
+    swipePhase === "commit-up"
+      ? "up"
+      : swipePhase === "commit-down"
+        ? "down"
+        : swipeOffset < 0
+          ? "up"
+          : swipeOffset > 0
+            ? "down"
+            : null;
+  const adjacentIndex =
+    swipeDirection === "up"
+      ? (activeIndex + 1) % photos.length
+      : swipeDirection === "down"
+        ? (activeIndex - 1 + photos.length) % photos.length
+        : null;
+  const adjacentPhoto = adjacentIndex !== null ? photos[adjacentIndex] : null;
 
   const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (swipePhase !== "idle") {
+      return;
+    }
     setTouchStartY(event.touches[0]?.clientY ?? null);
   };
 
   const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStartY === null) {
+    if (touchStartY === null || swipePhase !== "idle") {
       return;
     }
 
     const nextOffset = (event.touches[0]?.clientY ?? 0) - touchStartY;
-    setSwipeOffset(Math.min(Math.max(nextOffset, -120), 120));
+    setSwipeOffset(Math.min(Math.max(nextOffset, -180), 180));
   };
 
   const handleTouchEnd = () => {
     if (touchStartY !== null && swipeOffset <= -70) {
-      onNext();
+      setSwipePhase("commit-up");
+      setSwipeOffset(-viewportHeight);
+      window.setTimeout(() => {
+        onNext();
+        setSwipePhase("idle");
+        setSwipeOffset(0);
+      }, 240);
     } else if (touchStartY !== null && swipeOffset >= 70) {
-      onPrevious();
+      setSwipePhase("commit-down");
+      setSwipeOffset(viewportHeight);
+      window.setTimeout(() => {
+        onPrevious();
+        setSwipePhase("idle");
+        setSwipeOffset(0);
+      }, 240);
+    } else {
+      setSwipeOffset(0);
     }
 
     setTouchStartY(null);
-    setSwipeOffset(0);
   };
 
   return (
     <div className="fixed inset-0 z-[95]" style={{ backgroundColor: viewerBackground }} onClick={onClose}>
+      <div className="swipe-up-hint absolute left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
+        <ChevronsUp className="swipe-up-icon h-4 w-4" strokeWidth={2.4} />
+        <span className="text-[12px] font-[760] tracking-[-0.02em]">Swipe up</span>
+      </div>
       <button
         onClick={(event) => {
           event.stopPropagation();
           onClose();
         }}
-        className="absolute right-4 top-4 z-20 rounded-full bg-white p-2.5 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]"
+        className="absolute right-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/86 text-[#0f172a] shadow-[0_14px_28px_rgba(15,23,42,0.14)] backdrop-blur-sm transition-transform active:scale-[0.96]"
         aria-label="Închide highlight"
       >
-        <X className="h-6 w-6" />
+        <X className="h-[18px] w-[18px]" strokeWidth={2.35} />
       </button>
 
       <div className="relative flex h-full w-full items-center justify-center" onClick={(event) => event.stopPropagation()}>
-        <button onClick={onPrevious} className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-3 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-
         <div
           className="relative h-full w-full overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
+          {adjacentPhoto ? (
+            <div
+              className="absolute inset-0 transition-transform duration-300 ease-out"
+              style={{
+                transform:
+                  swipeDirection === "up"
+                    ? `translateY(${swipeOffset + viewportHeight}px)`
+                    : `translateY(${swipeOffset - viewportHeight}px)`,
+              }}
+            >
+              <Image src={adjacentPhoto} alt={`${highlight.title} ${adjacentIndex! + 1}`} fill sizes="100vw" className="object-contain object-center" />
+            </div>
+          ) : null}
           <div
             key={activePhoto}
             className="highlight-photo-enter relative h-full w-full transition-transform duration-300 ease-out"
             style={{
               transform: `translateY(${swipeOffset}px) scale(${touchStartY !== null ? 0.985 : 1})`,
+              opacity: touchStartY !== null ? 0.98 : 1,
             }}
           >
             <Image src={activePhoto} alt={`${highlight.title} ${activeIndex + 1}`} fill sizes="100vw" className="object-contain object-center" />
@@ -881,10 +959,6 @@ function HighlightViewer({
             </div>
           </div>
         </div>
-
-        <button onClick={onNext} className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white p-3 text-[#0f172a] shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
-          <ChevronLeft className="h-5 w-5 rotate-180" />
-        </button>
       </div>
     </div>
   );
