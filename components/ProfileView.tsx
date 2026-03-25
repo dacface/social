@@ -6,7 +6,6 @@ import {
   Briefcase,
   Calendar,
   Camera,
-  Check,
   ChevronLeft,
   Globe,
   Grid2x2,
@@ -16,7 +15,6 @@ import {
   PlayCircle,
   Radio,
   Sparkles,
-  UserPlus,
   X,
 } from "lucide-react";
 import FeedPost, { Post } from "./FeedPost";
@@ -242,14 +240,12 @@ export default function ProfileView() {
             <div className="relative rounded-[28px] border border-white/70 bg-white/72 p-4 shadow-[0_14px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl">
               <button
                 onClick={handleFollow}
-                className={`profile-follow-badge absolute right-0 top-0 inline-flex shrink-0 items-center gap-2 rounded-tr-[28px] rounded-bl-[24px] px-4 py-2.5 text-[13px] font-[760] text-white transition-transform active:scale-[0.98] ${
+                className={`absolute right-0 top-0 shrink-0 rounded-tr-[28px] rounded-bl-[24px] px-4 py-2.5 text-[13px] font-[760] text-white transition-transform active:scale-[0.98] ${
                   isFollowed
                     ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
                     : "bg-[linear-gradient(135deg,#2f7dff_0%,#1858f2_100%)] shadow-[0_14px_30px_rgba(37,99,235,0.24)]"
                 }`}
-                aria-pressed={isFollowed}
               >
-                {isFollowed ? <Check className="h-4 w-4" strokeWidth={2.4} /> : <UserPlus className="h-4 w-4" strokeWidth={2.4} />}
                 {isFollowed ? "Following" : "Follow"}
               </button>
               <div className="flex items-start gap-4">
@@ -488,33 +484,12 @@ export default function ProfileView() {
             background-position: -200% 0;
           }
         }
-        @keyframes profile-follow-pulse {
-          0% {
-            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
-            transform: scale(1);
-          }
-          50% {
-            box-shadow: 0 14px 32px rgba(37, 99, 235, 0.28);
-            transform: scale(1.03);
-          }
-          100% {
-            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
-            transform: scale(1);
-          }
-        }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
         .no-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
-        }
-        .profile-follow-badge {
-          animation: profile-follow-pulse 2.6s ease-in-out infinite;
-          will-change: transform, box-shadow;
-        }
-        .profile-follow-badge:hover {
-          animation-play-state: paused;
         }
       `}</style>
     </div>
