@@ -238,10 +238,10 @@ export default function ProfileView() {
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="absolute right-4 top-4 inline-flex h-11 items-center gap-2 rounded-full bg-white/18 px-4 py-2 text-[12px] font-[760] text-white backdrop-blur-md transition-transform active:scale-[0.98]"
+            aria-label="Schimbă poza de profil"
+            className="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/18 text-white backdrop-blur-md transition-transform active:scale-[0.98]"
           >
             <Camera className="h-4 w-4" strokeWidth={2.1} />
-            Schimbă poza
           </button>
         </div>
 
@@ -270,7 +270,7 @@ export default function ProfileView() {
                 </div>
                 <button
                   onClick={handleFollow}
-                  className={`-mt-2 mr-[-4px] inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-3 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
+                  className={`-mt-4 mr-[-4px] inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-3 text-[14px] font-[760] text-white transition-transform active:scale-[0.98] ${
                     isFollowed
                       ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
                       : "bg-[linear-gradient(135deg,#4c86ff_0%,#1f5eff_100%)] shadow-[0_18px_34px_rgba(37,99,235,0.28)]"
