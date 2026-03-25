@@ -1,8 +1,7 @@
 "use client";
 
-import React, { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import React, { startTransition, useEffect, useRef, useState } from "react";
 import {
-  Bookmark,
   Briefcase,
   Calendar,
   Link as LinkIcon,
@@ -14,48 +13,11 @@ import {
 import FeedPost, { type Post } from "./FeedPost";
 import AiAnalysisModal from "./AiAnalysisModal";
 import DezbatereModal from "./DezbatereModal";
-import CoverPickerModal from "./profile/CoverPickerModal";
 import EmptyProfileState from "./profile/EmptyProfileState";
 import LoadingSkeletonProfile from "./profile/LoadingSkeletonProfile";
 import ProfileHero from "./profile/ProfileHero";
 import ProfilePostGrid from "./profile/ProfilePostGrid";
 import StickyProfileTabs from "./profile/StickyProfileTabs";
-import {
-  PROFILE_COVER_TEMPLATES,
-  getProfileCoverById,
-  getRecommendedProfileCovers,
-} from "@/lib/profileCovers";
-
-const PROFILE_STORAGE_KEY = "profile-view-cover-id";
-const PROFILE_FAVORITES_STORAGE_KEY = "profile-view-cover-favorites";
-
-function getInitialStoredCoverId() {
-  if (typeof window === "undefined") {
-    return "mesh-lagoon";
-  }
-
-  const storedCoverId = window.localStorage.getItem(PROFILE_STORAGE_KEY);
-  return storedCoverId && getProfileCoverById(storedCoverId) ? storedCoverId : "mesh-lagoon";
-}
-
-function getInitialFavoriteCoverIds() {
-  if (typeof window === "undefined") {
-    return [] as string[];
-  }
-
-  const storedFavorites = window.localStorage.getItem(PROFILE_FAVORITES_STORAGE_KEY);
-
-  if (!storedFavorites) {
-    return [] as string[];
-  }
-
-  try {
-    const parsed = JSON.parse(storedFavorites);
-    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
-  } catch {
-    return [] as string[];
-  }
-}
 
 const MOCK_USER = {
   id: "u123",
@@ -182,7 +144,6 @@ export default function ProfileView() {
   const [isDezbatereOpen, setIsDezbatereOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
   const [statsSheet, setStatsSheet] = useState<null | "followers" | "following" | "posts" | "likes">(null);
-  const [isCoverPickerOpen, setIsCoverPickerOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
   const [messageDraft, setMessageDraft] = useState("");
@@ -190,9 +151,6 @@ export default function ProfileView() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState(MOCK_USER.avatar);
-  const [selectedCoverId, setSelectedCoverId] = useState(getInitialStoredCoverId);
-  const [previewCoverId, setPreviewCoverId] = useState(getInitialStoredCoverId);
-  const [favoriteCoverIds, setFavoriteCoverIds] = useState<string[]>(getInitialFavoriteCoverIds);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -218,21 +176,6 @@ export default function ProfileView() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
-  const activeCover = useMemo(
-    () => getProfileCoverById(previewCoverId) ?? PROFILE_COVER_TEMPLATES[0],
-    [previewCoverId],
-  );
-
-  const recommendedCovers = useMemo(
-    () => getRecommendedProfileCovers(MOCK_USER.tags),
-    [],
-  );
-
-  const recommendedIds = useMemo(
-    () => recommendedCovers.map((cover) => cover.id),
-    [recommendedCovers],
-  );
 
   const stats = [
     { id: "followers", label: "Followers", value: MOCK_USER.followers, tone: "accent" as const },
@@ -272,37 +215,12 @@ export default function ProfileView() {
     event.target.value = "";
   };
 
-  const handleCoverPreview = (coverId: string) => {
-    setPreviewCoverId(coverId);
-  };
-
-  const handleCoverSave = (coverId: string) => {
-    setSelectedCoverId(coverId);
-    setPreviewCoverId(coverId);
-    window.localStorage.setItem(PROFILE_STORAGE_KEY, coverId);
-    setIsCoverPickerOpen(false);
-    setIsEditSheetOpen(false);
-  };
-
-  const handleCoverClose = () => {
-    setPreviewCoverId(selectedCoverId);
-    setIsCoverPickerOpen(false);
-  };
-
-  const toggleFavoriteCover = (coverId: string) => {
-    setFavoriteCoverIds((current) => {
-      const next = current.includes(coverId) ? current.filter((id) => id !== coverId) : [...current, coverId];
-      window.localStorage.setItem(PROFILE_FAVORITES_STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
   if (isLoadingProfile) {
     return <LoadingSkeletonProfile />;
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#eef3f8_0%,#f5f7fb_26%,#f8fafc_100%)]">
+    <div className="min-h-screen w-full overflow-x-hidden bg-[linear-gradient(180deg,#eef3f8_0%,#f5f7fb_26%,#f8fafc_100%)]">
       <ProfileHero
         user={{
           name: MOCK_USER.name,
@@ -315,7 +233,6 @@ export default function ProfileView() {
           badges: MOCK_USER.badges,
           isVerified: MOCK_USER.isVerified,
         }}
-        cover={activeCover}
         scrollY={scrollY}
         stats={stats}
         isOwnProfile
@@ -325,7 +242,6 @@ export default function ProfileView() {
         onMore={() => setIsAiOpen(true)}
         onEdit={() => setIsEditSheetOpen(true)}
         onEditAvatar={() => avatarInputRef.current?.click()}
-        onChangeCover={() => setIsCoverPickerOpen(true)}
         onSelectStat={(id) => setStatsSheet(id as "followers" | "following" | "posts" | "likes")}
       />
 
@@ -373,8 +289,8 @@ export default function ProfileView() {
               <EmptyProfileState
                 title="Nimic salvat încă"
                 description="Colecțiile și highlight-urile tale apar aici imediat ce începi să salvezi momente și postări."
-                actionLabel="Vezi cover-urile"
-                onAction={() => setIsCoverPickerOpen(true)}
+                actionLabel="Încarcă o postare"
+                onAction={() => startTransition(() => setActiveTab("posts"))}
               />
             )
           ) : null}
@@ -424,30 +340,11 @@ export default function ProfileView() {
         onChange={handleAvatarUpload}
       />
 
-      {isCoverPickerOpen ? (
-        <CoverPickerModal
-          isOpen={isCoverPickerOpen}
-          covers={PROFILE_COVER_TEMPLATES}
-          currentCoverId={selectedCoverId}
-          favoriteIds={favoriteCoverIds}
-          recommendedIds={recommendedIds}
-          onClose={handleCoverClose}
-          onPreview={handleCoverPreview}
-          onSave={handleCoverSave}
-          onToggleFavorite={toggleFavoriteCover}
-        />
-      ) : null}
-
       <EditProfileSheet
         isOpen={isEditSheetOpen}
         avatarUrl={avatarUrl}
-        coverTitle={activeCover.title}
         onClose={() => setIsEditSheetOpen(false)}
         onEditAvatar={() => avatarInputRef.current?.click()}
-        onChooseCover={() => {
-          setIsEditSheetOpen(false);
-          setIsCoverPickerOpen(true);
-        }}
       />
 
       <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} postId={`profile_${MOCK_USER.id}`} />
@@ -471,17 +368,13 @@ export default function ProfileView() {
 function EditProfileSheet({
   isOpen,
   avatarUrl,
-  coverTitle,
   onClose,
   onEditAvatar,
-  onChooseCover,
 }: {
   isOpen: boolean;
   avatarUrl: string;
-  coverTitle: string;
   onClose: () => void;
   onEditAvatar: () => void;
-  onChooseCover: () => void;
 }) {
   if (!isOpen) {
     return null;
@@ -497,7 +390,7 @@ function EditProfileSheet({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[21px] font-[720] tracking-[-0.05em] text-[#111827]">Edit profile</div>
-            <div className="mt-1 text-[13px] text-[#6b7280]">Upload doar pentru avatar, cover doar din biblioteca presetată.</div>
+            <div className="mt-1 text-[13px] text-[#6b7280]">Poți actualiza rapid fotografia de profil.</div>
           </div>
           <button onClick={onClose} className="rounded-full bg-white p-2 text-[#111827]">
             <X className="h-5 w-5" />
@@ -513,27 +406,6 @@ function EditProfileSheet({
             </div>
             <button onClick={onEditAvatar} className="rounded-full bg-[#111827] px-4 py-2 text-[13px] font-semibold text-white">
               Upload
-            </button>
-          </div>
-
-          <div className="rounded-[26px] bg-white p-4 shadow-[0_16px_36px_rgba(15,23,42,0.07)]">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-[15px] font-semibold text-[#111827]">Choose Cover</div>
-                <div className="mt-1 text-[13px] leading-6 text-[#6b7280]">
-                  Fără upload personal pentru cover. Selectezi doar din colecția abstractă presetată.
-                </div>
-              </div>
-              <Bookmark className="h-5 w-5 text-[#1877F2]" />
-            </div>
-            <div className="mt-4 rounded-[20px] bg-[#f6f8fb] px-4 py-3 text-[14px] text-[#344054]">
-              Cover curent: <span className="font-semibold">{coverTitle}</span>
-            </div>
-            <button
-              onClick={onChooseCover}
-              className="mt-4 w-full rounded-[20px] border border-[#dce4ef] bg-white px-4 py-3 text-[15px] font-semibold text-[#111827]"
-            >
-              Deschide galeria de covers
             </button>
           </div>
         </div>

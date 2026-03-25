@@ -20,12 +20,12 @@ export default function ProfileStatsRow({
         <button
           key={item.id}
           onClick={() => onSelect?.(item.id)}
-          className="rounded-[22px] border border-white/70 bg-white/82 px-3 py-3 text-left shadow-[0_10px_28px_rgba(15,23,42,0.07)] backdrop-blur transition-transform active:scale-[0.985]"
+          className="min-w-0 rounded-[20px] border border-white/70 bg-white/82 px-2.5 py-3 text-left shadow-[0_10px_28px_rgba(15,23,42,0.07)] backdrop-blur transition-transform active:scale-[0.985]"
         >
-          <div className={`text-[18px] font-[720] tracking-[-0.04em] ${item.tone === "accent" ? "text-[#0f5fe0]" : "text-[#111827]"}`}>
+          <div className={`truncate text-[16px] font-[720] tracking-[-0.04em] ${item.tone === "accent" ? "text-[#0f5fe0]" : "text-[#111827]"}`}>
             {item.value}
           </div>
-          <div className="mt-1 text-[12px] font-medium text-[#6b7280]">{item.label}</div>
+          <div className="mt-1 truncate text-[11px] font-medium text-[#6b7280]">{item.label}</div>
         </button>
       ))}
     </div>
