@@ -203,7 +203,9 @@ export default function ProfileView() {
             <Image src={avatarSrc} alt={PROFILE.name} fill sizes="44px" className="object-cover" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[16px] font-[760] tracking-[-0.03em] text-[#0f172a]">{PROFILE.name}</div>
+            <div className="truncate text-[16px] font-[760] tracking-[-0.03em]" style={{ color: "#0f172a" }}>
+              {PROFILE.name}
+            </div>
             <div className="truncate text-[13px] font-[600] tracking-[-0.01em] text-[#65676b]">{profileMetricsLabel}</div>
           </div>
           <button
@@ -261,6 +263,7 @@ export default function ProfileView() {
                         fontSize: "clamp(22px, 5.7vw, 32px)",
                         lineHeight: 1.02,
                         letterSpacing: "-0.05em",
+                        color: "#111111",
                       }}
                     >
                       {PROFILE.name}
