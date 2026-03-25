@@ -11,13 +11,10 @@ import {
   Grid2x2,
   Image as ImageIcon,
   MapPin,
-  MessageCircle,
   MoreHorizontal,
   PlayCircle,
   Radio,
-  Scale,
   Sparkles,
-  UserPlus,
   X,
 } from "lucide-react";
 import FeedPost, { Post } from "./FeedPost";
@@ -190,76 +187,84 @@ export default function ProfileView() {
       </div>
 
       <section className="relative">
-        <div className="relative aspect-[4/3] w-full overflow-hidden">
-          <Image src={PROFILE.avatar} alt={PROFILE.name} fill priority sizes="(max-width: 640px) 100vw, 600px" className="object-cover" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,15,28,0.05)_0%,rgba(8,15,28,0.12)_28%,rgba(8,15,28,0.28)_60%,rgba(8,15,28,0.54)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.16),transparent_22%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.14),transparent_24%)]" />
-          <div className="absolute bottom-5 left-5 right-5 text-white">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-[11px] font-[800] uppercase tracking-[0.16em] backdrop-blur-md">
-              <Radio className="h-3.5 w-3.5" strokeWidth={2.3} />
-              Profile image
-            </div>
-          </div>
+        <div className="relative aspect-[0.88/1] w-full overflow-hidden bg-[#d9c6c0]">
+          <Image
+            src={PROFILE.avatar}
+            alt={PROFILE.name}
+            fill
+            priority
+            sizes="(max-width: 640px) 100vw, 600px"
+            className="object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.04)_32%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0.34)_100%)]" />
         </div>
 
-        <div className="relative px-0 pb-3">
-          <div className="overflow-hidden rounded-none bg-[linear-gradient(180deg,rgba(255,255,255,0.99)_0%,rgba(255,255,255,0.97)_52%,rgba(248,250,255,0.98)_100%)] px-5 pb-6 pt-6 shadow-[0_24px_52px_rgba(15,23,42,0.1)] ring-1 ring-white/90 sm:rounded-[34px] sm:px-6 sm:pt-8">
-            <div className="text-center sm:text-left">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                    <h1
-                      className="font-[800] text-[#0f172a]"
-                      style={{
-                        fontSize: "clamp(28px, 6.6vw, 38px)",
-                        lineHeight: 1,
-                        letterSpacing: "-0.06em",
-                      }}
-                    >
-                      {PROFILE.name}
-                    </h1>
-                    {PROFILE.isVerified ? <VerifiedBadge /> : null}
-                  </div>
-                  <div className="mt-2 text-[15px] font-[680] tracking-[-0.01em] text-[#64748b]">{PROFILE.username}</div>
-                  <div className="mt-3 max-w-[30rem] text-[17px] font-[720] tracking-[-0.03em] text-[#1d2939]">{PROFILE.headline}</div>
+        <div className="relative -mt-12 px-0 pb-3">
+          <div className="overflow-hidden rounded-t-[34px] rounded-b-none bg-white px-5 pb-6 pt-5 shadow-[0_-10px_30px_rgba(15,23,42,0.04),0_18px_42px_rgba(15,23,42,0.08)] sm:rounded-[34px] sm:px-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1
+                    className="font-[790] text-[#111111]"
+                    style={{
+                      fontSize: "clamp(22px, 5.7vw, 32px)",
+                      lineHeight: 1.02,
+                      letterSpacing: "-0.05em",
+                    }}
+                  >
+                    {PROFILE.name}
+                  </h1>
+                  {PROFILE.isVerified ? <VerifiedBadge /> : null}
                 </div>
-                <button className="self-center rounded-full bg-[#f8fafc] px-3 py-2 text-[12px] font-[780] uppercase tracking-[0.12em] text-[#64748b] shadow-[0_8px_18px_rgba(15,23,42,0.04)] sm:self-start">
-                  Premium
-                </button>
+                <div className="mt-1 text-[15px] font-[620] tracking-[-0.01em] text-[#707784]">{PROFILE.username}</div>
               </div>
+              <button
+                onClick={handleFollow}
+                className={`shrink-0 rounded-full px-6 py-3 text-[14px] font-[760] text-white shadow-[0_14px_30px_rgba(255,90,95,0.24)] transition-transform active:scale-[0.98] ${
+                  isFollowed
+                    ? "bg-[linear-gradient(135deg,#8ea5c7_0%,#64748b_100%)]"
+                    : "bg-[linear-gradient(135deg,#2f7dff_0%,#1858f2_100%)] shadow-[0_14px_30px_rgba(37,99,235,0.24)]"
+                }`}
+              >
+                {isFollowed ? "Following" : "Follow"}
+              </button>
+            </div>
 
-              <p className="mx-auto mt-4 max-w-[34rem] text-[15px] leading-[1.72] text-[#516072] sm:mx-0">{PROFILE.bio}</p>
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              <CompactStatCard value={PROFILE.postsCount} label="posts" />
+              <CompactStatCard value={PROFILE.followers} label="followers" />
+              <CompactStatCard value={PROFILE.following} label="following" />
+            </div>
 
-              <div className="mt-5 grid grid-cols-4 gap-2 rounded-[26px] bg-[#f8fbff] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-                <StatCard value={PROFILE.followers} label="Followers" />
-                <StatCard value={PROFILE.following} label="Following" />
-                <StatCard value={PROFILE.postsCount} label="Posts" />
-                <StatCard value={PROFILE.likes} label="Likes" />
-              </div>
+            <div className="mt-4 flex items-center gap-2 rounded-[18px] bg-[#f3f6fa] px-4 py-3 text-[14px] font-[620] text-[#334155]">
+              <Globe className="h-4 w-4 text-[#7c8aa5]" strokeWidth={2.1} />
+              <span className="truncate">{PROFILE.website}</span>
+              <ChevronLeft className="ml-auto h-4 w-4 rotate-180 text-[#7c8aa5]" strokeWidth={2.2} />
+            </div>
 
-              <div className="mt-5 grid grid-cols-[1fr_1fr_auto] gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
-                <ActionButton icon={<UserPlus className="h-4 w-4" strokeWidth={2.25} />} label={isFollowed ? "Following" : "Follow"} primary onClick={handleFollow} />
-                <ActionButton icon={<MessageCircle className="h-4 w-4" strokeWidth={2.25} />} label="Message" onClick={() => startTransition(() => setActiveTab("despre"))} />
-                <IconButton icon={<Sparkles className="h-4 w-4" strokeWidth={2.25} />} label="AI" onClick={() => setIsAiOpen(true)} />
-                <div className="hidden sm:block">
-                  <IconButton icon={<Scale className="h-4 w-4" strokeWidth={2.25} />} label="Debate" onClick={() => setIsDezbatereOpen(true)} />
-                </div>
-              </div>
+            <p className="mt-4 text-[15px] leading-[1.68] text-[#4b5563]">
+              {PROFILE.headline}. {PROFILE.bio}
+            </p>
 
-              <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">
-                {PROFILE.badges.map((badge) => (
-                  <span key={badge} className="rounded-full bg-[#f4f7fb] px-3 py-2 text-[12px] font-[780] text-[#334155]">
-                    {badge}
-                  </span>
-                ))}
-              </div>
+            <div className="mt-5 flex items-center gap-6 overflow-x-auto text-[15px] font-[650] text-[#111111] no-scrollbar">
+              <button className="shrink-0 border-b-2 border-[#ff4d6d] pb-2 text-[#ff4d6d]">194 photos</button>
+              <button className="shrink-0 pb-2 text-[#111111]">15 videos</button>
+              <button className="shrink-0 pb-2 text-[#111111]">9 stories</button>
+              <button className="shrink-0 pb-2 text-[#111111]">85 tags</button>
+            </div>
 
-              <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[14px] font-[580] text-[#64748b] sm:justify-start">
-                <MetaItem icon={<MapPin className="h-4 w-4" />} text={PROFILE.location} />
-                <MetaItem icon={<Briefcase className="h-4 w-4" />} text={PROFILE.work} />
-                <MetaItem icon={<Calendar className="h-4 w-4" />} text={PROFILE.joinDate} />
-                <MetaItem icon={<Globe className="h-4 w-4" />} text={PROFILE.website} />
-              </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {PROFILE.badges.map((badge) => (
+                <span key={badge} className="rounded-full bg-[#f4f7fb] px-3 py-2 text-[12px] font-[760] text-[#334155]">
+                  {badge}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[14px] font-[580] text-[#64748b]">
+              <MetaItem icon={<MapPin className="h-4 w-4" />} text={PROFILE.location} />
+              <MetaItem icon={<Briefcase className="h-4 w-4" />} text={PROFILE.work} />
+              <MetaItem icon={<Calendar className="h-4 w-4" />} text={PROFILE.joinDate} />
             </div>
           </div>
         </div>
@@ -453,58 +458,12 @@ function MetaItem({ icon, text }: { icon: React.ReactNode; text: string }) {
   );
 }
 
-function StatCard({ value, label }: { value: string; label: string }) {
+function CompactStatCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-[22px] bg-white px-3 py-3 text-left shadow-[0_10px_20px_rgba(15,23,42,0.04)]">
-      <div className="text-[22px] font-[780] tracking-[-0.05em] text-[#0f172a]">{value}</div>
-      <div className="mt-1 text-[11px] font-[700] uppercase tracking-[0.12em] text-[#94a3b8]">{label}</div>
+    <div className="rounded-[20px] bg-[#f8fafc] px-3 py-4 text-center shadow-[0_8px_18px_rgba(15,23,42,0.04)]">
+      <div className="text-[22px] font-[790] tracking-[-0.05em] text-[#111111]">{value}</div>
+      <div className="mt-1 text-[12px] font-[650] text-[#4b5563]">{label}</div>
     </div>
-  );
-}
-
-function ActionButton({
-  icon,
-  label,
-  onClick,
-  primary,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  primary?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex h-[50px] items-center justify-center gap-2 rounded-full px-4 text-[14px] font-[740] transition-transform active:scale-[0.98] ${
-        primary
-          ? "bg-[linear-gradient(135deg,#2f7dff_0%,#1858f2_100%)] text-white shadow-[0_12px_24px_rgba(37,99,235,0.2)]"
-          : "bg-[#eef3f8] text-[#0f172a]"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
-function IconButton({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      aria-label={label}
-      className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#eef3f8] text-[#334155] transition-transform active:scale-[0.98]"
-    >
-      {icon}
-    </button>
   );
 }
 
