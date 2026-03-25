@@ -37,6 +37,7 @@ const PROFILE = {
   bio: "Construiesc produse digitale, documentez idei de business si transform profilul intr-un spatiu editorial cu ritm, claritate si identitate.",
   location: "Bucuresti, Romania",
   work: "Fondator la TechStart",
+  birthDate: "12 mai 1998",
   joinDate: "Membru din sept. 2024",
   website: "alexmarin.ro",
   followers: "124K",
@@ -65,26 +66,26 @@ const PROFILE = {
   highlights: [
     {
       id: "h1",
-      title: "Travel",
-      subtitle: "Updated today",
+      title: "Profil",
+      subtitle: "Fotografii de profil",
       image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=500&auto=format&fit=crop",
     },
     {
       id: "h2",
-      title: "Studio",
-      subtitle: "Creative flow",
+      title: "Vacante",
+      subtitle: "Amintiri magice",
       image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=500&auto=format&fit=crop",
     },
     {
       id: "h3",
-      title: "Events",
-      subtitle: "Most viewed",
+      title: "Momente",
+      subtitle: "Momentele mele",
       image: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=500&auto=format&fit=crop",
     },
     {
       id: "h4",
-      title: "Ideas",
-      subtitle: "Saved a lot",
+      title: "Timeline",
+      subtitle: "Cronologia mea",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=500&auto=format&fit=crop",
     },
   ],
@@ -338,6 +339,7 @@ export default function ProfileView() {
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[14px] font-[580] text-[#64748b]">
               <MetaItem icon={<MapPin className="h-4 w-4" />} text={PROFILE.location} />
               <MetaItem icon={<Briefcase className="h-4 w-4" />} text={PROFILE.work} />
+              <MetaItem icon={<Calendar className="h-4 w-4" />} text={`Data nasterii: ${PROFILE.birthDate}`} />
               <MetaItem icon={<Calendar className="h-4 w-4" />} text={PROFILE.joinDate} />
             </div>
           </div>
