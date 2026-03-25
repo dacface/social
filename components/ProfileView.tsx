@@ -1180,6 +1180,7 @@ function ProfileMediaViewer({
 }) {
   const [viewerLoaded, setViewerLoaded] = useState(false);
   const activePhoto = activeIndex !== null ? photos[activeIndex] : null;
+  const resolvedActiveIndex = activeIndex ?? 0;
 
   useEffect(() => {
     if (activeIndex === null) {
@@ -1236,7 +1237,7 @@ function ProfileMediaViewer({
           <Image
             key={activePhoto}
             src={activePhoto}
-            alt={`Fotografie ${activeIndex + 1}`}
+            alt={`Fotografie ${resolvedActiveIndex + 1}`}
             fill
             sizes="(max-width: 640px) 100vw, 520px"
             className={`object-contain transition duration-500 ${viewerLoaded ? "opacity-100" : "opacity-0"}`}
@@ -1247,7 +1248,7 @@ function ProfileMediaViewer({
             <div>
               <div className="text-[12px] font-[800] uppercase tracking-[0.14em] text-white/60">Media spotlight</div>
               <div className="mt-1 text-[17px] font-[760] tracking-[-0.03em] text-white">
-                Cadru {activeIndex + 1} din {photos.length}
+                Cadru {resolvedActiveIndex + 1} din {photos.length}
               </div>
             </div>
             <div className="rounded-full bg-white/10 px-3 py-2 text-[12px] font-[700] uppercase tracking-[0.12em] text-white/78 backdrop-blur-md">
@@ -1274,7 +1275,7 @@ function ProfileMediaViewer({
               key={photo}
               onClick={() => onSelect(index)}
               className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-[18px] ring-1 transition-all ${
-                index === activeIndex ? "scale-[1.02] ring-white/70" : "opacity-70 ring-white/10"
+                index === resolvedActiveIndex ? "scale-[1.02] ring-white/70" : "opacity-70 ring-white/10"
               }`}
             >
               <Image src={photo} alt={`Preview ${index + 1}`} fill sizes="64px" className="object-cover" />
