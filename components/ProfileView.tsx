@@ -339,8 +339,10 @@ export default function ProfileView() {
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[14px] font-[580] text-[#64748b]">
               <MetaItem icon={<MapPin className="h-4 w-4" />} text={PROFILE.location} />
               <MetaItem icon={<Briefcase className="h-4 w-4" />} text={PROFILE.work} />
-              <MetaItem icon={<Calendar className="h-4 w-4" />} text={`Data nasterii: ${PROFILE.birthDate}`} />
-              <MetaItem icon={<Calendar className="h-4 w-4" />} text={PROFILE.joinDate} />
+              <MetaItem
+                icon={<Calendar className="h-4 w-4" />}
+                text={`Data nasterii: ${PROFILE.birthDate} · ${PROFILE.joinDate}`}
+              />
             </div>
           </div>
         </div>
