@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { startTransition, useDeferredValue, useEffect, useState } from "react";
+import React, { startTransition, useDeferredValue, useEffect, useRef, useState } from "react";
 import {
   Briefcase,
   Calendar,
@@ -126,6 +126,7 @@ type TabId = "postari" | "media" | "despre";
 
 export default function ProfileView() {
   const defaultPostId = PROFILE.posts[0]?.id ?? PROFILE.id;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("postari");
   const deferredTab = useDeferredValue(activeTab);
   const [isFollowed, setIsFollowed] = useState(false);
@@ -135,6 +136,8 @@ export default function ProfileView() {
   const [messageStatus, setMessageStatus] = useState("");
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [avatarSrc, setAvatarSrc] = useState(PROFILE.avatar);
+  const [avatarObjectUrl, setAvatarObjectUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -149,6 +152,14 @@ export default function ProfileView() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (avatarObjectUrl) {
+        URL.revokeObjectURL(avatarObjectUrl);
+      }
+    };
+  }, [avatarObjectUrl]);
+
   const handleFollow = () => {
     setIsFollowed((current) => !current);
   };
@@ -162,6 +173,23 @@ export default function ProfileView() {
     setMessageDraft("");
   };
 
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (avatarObjectUrl) {
+      URL.revokeObjectURL(avatarObjectUrl);
+    }
+
+    const nextUrl = URL.createObjectURL(file);
+    setAvatarObjectUrl(nextUrl);
+    setAvatarSrc(nextUrl);
+    event.target.value = "";
+  };
+
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[linear-gradient(180deg,#f4f7fb_0%,#eef3f8_36%,#edf2f7_100%)] text-[#0f172a]">
       <div
@@ -169,7 +197,7 @@ export default function ProfileView() {
       >
         <div className="mx-auto flex max-w-[600px] items-center gap-3 border-b border-white/70 bg-white/88 px-4 py-3 backdrop-blur-xl">
           <div className="relative h-11 w-11 overflow-hidden rounded-2xl bg-[#dbe4f0]">
-            <Image src={PROFILE.avatar} alt={PROFILE.name} fill sizes="44px" className="object-cover" />
+            <Image src={avatarSrc} alt={PROFILE.name} fill sizes="44px" className="object-cover" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[16px] font-[760] tracking-[-0.03em] text-[#0f172a]">{PROFILE.name}</div>
@@ -189,7 +217,7 @@ export default function ProfileView() {
       <section className="relative">
         <div className="relative aspect-[0.88/1] w-full overflow-hidden bg-[#d9c6c0]">
           <Image
-            src={PROFILE.avatar}
+            src={avatarSrc}
             alt={PROFILE.name}
             fill
             priority
@@ -197,6 +225,13 @@ export default function ProfileView() {
             className="object-cover object-top"
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.04)_32%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0.34)_100%)]" />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="absolute right-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/14 px-3 py-2 text-[12px] font-[760] text-white backdrop-blur-md transition-transform active:scale-[0.98]"
+          >
+            <Camera className="h-4 w-4" strokeWidth={2.1} />
+            Schimbă poza
+          </button>
         </div>
 
         <div className="relative -mt-12 px-0 pb-3">
@@ -427,6 +462,13 @@ export default function ProfileView() {
 
       <DezbatereModal isOpen={isDezbatereOpen} onClose={() => setIsDezbatereOpen(false)} postId={defaultPostId} />
       <AiAnalysisModal isOpen={isAiOpen} onClose={() => setIsAiOpen(false)} postId={defaultPostId} />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleAvatarFileChange}
+        className="hidden"
+      />
 
       <style jsx global>{`
         @keyframes profile-shimmer {
