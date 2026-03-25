@@ -44,6 +44,23 @@ const PROFILE = {
   postsCount: "56",
   likes: "2.4M",
   badges: ["Top Voice", "Verified Creator"],
+  mutualFriends: [
+    {
+      id: "m1",
+      name: "Andreea Pop",
+      avatar: "https://i.pravatar.cc/160?u=andreea",
+    },
+    {
+      id: "m2",
+      name: "Mihai Ionescu",
+      avatar: "https://i.pravatar.cc/160?u=mihai",
+    },
+    {
+      id: "m3",
+      name: "Elena Tudor",
+      avatar: "https://i.pravatar.cc/160?u=elena",
+    },
+  ],
   skills: ["Product strategy", "Social UX", "Creator tools", "Mobile storytelling", "Growth loops", "AI workflows"],
   highlights: [
     {
@@ -330,11 +347,55 @@ export default function ProfileView() {
       <div className="px-0">
         <section className="mb-3 overflow-hidden rounded-none bg-white px-4 py-4 shadow-[0_16px_38px_rgba(15,23,42,0.07)] ring-1 ring-white sm:rounded-[30px]">
           <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[12px] font-[800] uppercase tracking-[0.18em] text-[#8190a8]">Highlights</div>
-              <div className="mt-1 text-[21px] font-[780] tracking-[-0.045em] text-[#0f172a]">Momente care definesc profilul</div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="truncate text-[12px] font-[800] uppercase tracking-[0.18em] text-[#8190a8]">Prieteni comuni</div>
+                <button className="shrink-0 rounded-full bg-[#f8fafc] px-3 py-2 text-[12px] font-[760] text-[#334155]">Vezi toți</button>
+              </div>
+              <div
+                className="mt-1 whitespace-nowrap font-[780] tracking-[-0.045em] text-[#0f172a]"
+                style={{ fontSize: "clamp(15px, 4.5vw, 21px)" }}
+              >
+                Cunoștințe care vă conectează
+              </div>
             </div>
-            <button className="rounded-full bg-[#f8fafc] px-3 py-2 text-[12px] font-[760] text-[#334155]">See all</button>
+          </div>
+          <div className="mt-4 rounded-[28px] bg-[linear-gradient(135deg,#f8fbff_0%,#eef4ff_100%)] p-4 shadow-[0_12px_30px_rgba(37,99,235,0.08)]">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-3">
+                {PROFILE.mutualFriends.map((friend) => (
+                  <div
+                    key={friend.id}
+                    className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-[#dbe4f0] shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
+                  >
+                    <Image src={friend.avatar} alt={friend.name} fill sizes="48px" className="object-cover" />
+                  </div>
+                ))}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-[760] tracking-[-0.025em] text-[#0f172a]">Aveți 3 prieteni comuni</div>
+                <div className="mt-1 text-[13px] font-[600] text-[#64748b]">
+                  {PROFILE.mutualFriends.map((friend) => friend.name).join(", ")}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-3 overflow-hidden rounded-none bg-white px-4 py-4 shadow-[0_16px_38px_rgba(15,23,42,0.07)] ring-1 ring-white sm:rounded-[30px]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="truncate text-[12px] font-[800] uppercase tracking-[0.18em] text-[#8190a8]">Highlights</div>
+                <button className="shrink-0 rounded-full bg-[#f8fafc] px-3 py-2 text-[12px] font-[760] text-[#334155]">See all</button>
+              </div>
+              <div
+                className="mt-1 whitespace-nowrap font-[780] tracking-[-0.045em] text-[#0f172a]"
+                style={{ fontSize: "clamp(15px, 4.5vw, 21px)" }}
+              >
+                Momente care definesc profilul
+              </div>
+            </div>
           </div>
           <div className="mt-4 overflow-x-auto no-scrollbar">
             <div className="flex gap-3">
